@@ -1,19 +1,17 @@
 "use client";
 
-import { Briefcase, LogOut, Shield, User as UserIcon } from "lucide-react";
+import {
+  Briefcase,
+  LogOut,
+  Shield,
+  User as UserIcon,
+  UserRound,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "./auth-provider";
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 export function UserMenu() {
   const t = useTranslations("Auth");
@@ -52,8 +50,9 @@ export function UserMenu() {
       <button
         type="button"
         onClick={() => openLogin()}
-        className="h-10 rounded-full px-3 text-sm font-semibold hover:bg-muted"
+        className="flex h-10 items-center gap-2 rounded-full px-3 text-sm font-semibold hover:bg-muted"
       >
+        <UserRound className="size-5 text-primary" aria-hidden />
         {t("login")}
       </button>
     );
@@ -71,10 +70,11 @@ export function UserMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex size-10 items-center justify-center rounded-full bg-secondary text-sm font-bold text-primary"
+        className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary ring-1 ring-primary/10 transition hover:ring-primary/30"
         title={name}
+        aria-label={name}
       >
-        {initials(name) || <UserIcon className="size-5" />}
+        <UserRound className="size-5" strokeWidth={2.2} aria-hidden />
       </button>
       {open && (
         <div

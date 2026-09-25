@@ -1,5 +1,4 @@
 import { Mail, Phone, Plus, Search } from "lucide-react";
-import { ViberIcon, WhatsAppIcon } from "@/components/icons/apps";
 import { getTranslations } from "next-intl/server";
 import { SearchTrigger } from "@/components/search/search-dialog";
 import { Link } from "@/i18n/navigation";
@@ -15,27 +14,20 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
       <div className="border-b bg-muted/60">
-        <div className="mx-auto flex h-9 max-w-6xl items-center justify-end gap-4 px-4 text-xs">
+        <div className="mx-auto flex h-9 max-w-6xl items-center gap-4 px-4 text-xs">
+          <Link
+            href="/za-biznise"
+            className="mr-auto inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+          >
+            <Plus className="size-3.5" aria-hidden />
+            {t("addBusiness")}
+          </Link>
           <a
             href={`tel:${SITE.phoneTel}`}
             className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-primary"
           >
             <Phone className="size-3.5" aria-hidden />
             {SITE.phoneDisplay}
-          </a>
-          <a
-            href={`viber://chat?number=${encodeURIComponent(SITE.phoneTel)}`}
-            className="inline-flex items-center gap-1.5 font-medium hover:text-primary"
-          >
-            <ViberIcon className="size-3.5" />
-            Viber
-          </a>
-          <a
-            href={`https://wa.me/${SITE.phoneTel.replace(/\D/g, "")}`}
-            className="inline-flex items-center gap-1.5 font-medium hover:text-primary"
-          >
-            <WhatsAppIcon className="size-3.5" />
-            WhatsApp
           </a>
           <a
             href={`mailto:${SITE.email}`}
@@ -61,13 +53,6 @@ export async function SiteHeader() {
           </MobileSearchButton>
           <LanguageSwitcher />
           <UserMenu />
-          <Link
-            href="/za-biznise"
-            className="hidden h-10 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 sm:flex"
-          >
-            <Plus className="size-4" aria-hidden />
-            {t("addBusiness")}
-          </Link>
         </div>
       </div>
     </header>
