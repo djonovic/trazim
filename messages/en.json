@@ -670,7 +670,6 @@
   "Banner": {
     "label": "Ad",
     "defaultCta": "See the offer",
-    "close": "Close ad",
     "emptyBadge": "Available",
     "emptyTitle": "Your brand here",
     "emptyText": {

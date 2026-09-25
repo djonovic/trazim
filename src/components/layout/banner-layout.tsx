@@ -8,8 +8,8 @@ import {
 
 /**
  * Page body with a banner column on the right that stays in view while
- * scrolling (desktop). On phones the banner is a bottom strip (booked) or a
- * small card after the content (free spot).
+ * scrolling (desktop). On phones the banner is a card in the content, right
+ * after the page heading.
  */
 export function BannerLayout({
   locale,
@@ -35,7 +35,7 @@ export function BannerLayout({
         )}
       >
         {children}
-        <div className="max-lg:order-1! max-lg:mb-10 lg:hidden">
+        <div className="max-lg:order-1! lg:hidden">
           <BannerSlot locale={locale} target={banner} variant="mobile" />
         </div>
       </div>

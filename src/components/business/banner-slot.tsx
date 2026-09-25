@@ -5,7 +5,7 @@ import type { Locale } from "@/i18n/routing";
 import { formatEur } from "@/lib/format";
 import { getActiveBanner, type ActiveBanner } from "@/lib/queries/businesses";
 import { BANNER_PRICES, type BannerScope } from "@/lib/site";
-import { MobileBannerBar } from "./mobile-banner-bar";
+import { cn } from "@/lib/utils";
 
 export type BannerTarget = {
   /** Placements to try in order, e.g. the service, then the town. */
@@ -38,54 +38,18 @@ function Booked({
   banner,
   label,
   cta,
-  compact = false,
+  inline = false,
 }: {
   banner: ActiveBanner;
   label: string;
   cta: string;
-  compact?: boolean;
+  /** Phones: a card in the page content instead of the tall side column. */
+  inline?: boolean;
 }) {
   const style = {
     backgroundImage: `linear-gradient(160deg, ${banner.color}, ${shade(banner.color)})`,
   };
   const href = `/r/banner/${banner.id}`;
-  if (compact)
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="sponsored noopener"
-        data-nosnippet
-        style={style}
-        className="flex items-start gap-3 rounded-2xl p-3.5 text-white shadow-xl"
-      >
-        {banner.logoUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={banner.logoUrl}
-            alt=""
-            className="size-11 shrink-0 rounded-xl bg-white object-contain p-1.5"
-          />
-        )}
-        {/* Full title (up to two lines) with the button under it: on a phone
-            a button beside the title leaves room for only a few words. */}
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[10px] font-semibold tracking-wide uppercase opacity-80">
-            {label} · {banner.advertiser}
-          </span>
-          <span className="mt-0.5 line-clamp-2 block text-[15px] leading-snug font-bold">
-            {banner.title}
-          </span>
-          <span
-            className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-sm font-bold"
-            style={{ color: banner.color }}
-          >
-            {banner.cta || cta}
-            <ArrowRight className="size-3.5" aria-hidden />
-          </span>
-        </span>
-      </a>
-    );
   return (
     <a
       href={href}
@@ -93,14 +57,22 @@ function Booked({
       rel="sponsored noopener"
       data-nosnippet
       style={style}
-      className="group relative flex min-h-[26rem] flex-col overflow-hidden rounded-3xl p-6 text-white shadow-lg ring-1 ring-black/5 transition-transform hover:-translate-y-0.5"
+      className={cn(
+        "group relative flex flex-col overflow-hidden rounded-3xl text-white shadow-lg ring-1 ring-black/5 transition-transform hover:-translate-y-0.5",
+        inline ? "mb-10 p-5" : "min-h-[26rem] p-6",
+      )}
     >
       <span className={`pointer-events-none absolute inset-0 ${stripes}`} />
       <span className="pointer-events-none absolute -top-16 -right-16 size-48 rounded-full bg-white/10 blur-2xl" />
       <span className="relative inline-flex w-fit items-center rounded-full bg-black/20 px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase backdrop-blur">
         {label}
       </span>
-      <span className="relative mt-auto flex flex-col gap-4">
+      <span
+        className={cn(
+          "relative mt-auto flex flex-col",
+          inline ? "gap-3 pt-4" : "gap-4",
+        )}
+      >
         {banner.logoUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -109,7 +81,12 @@ function Booked({
             className="h-16 w-fit max-w-full rounded-2xl bg-white object-contain p-2.5 shadow-sm"
           />
         )}
-        <span className="text-[1.65rem] leading-tight font-extrabold text-balance">
+        <span
+          className={cn(
+            "leading-tight font-extrabold text-balance",
+            inline ? "text-2xl" : "text-[1.65rem]",
+          )}
+        >
           {banner.title}
         </span>
         {banner.body && (
@@ -135,8 +112,8 @@ function Booked({
 /**
  * Banner of a placement: the booked supplier/brand, or an invitation to book
  * the spot. `variant="rail"`: the card in the sticky side column (desktop);
- * `variant="mobile"`: a closable bottom strip when booked, a small card in
- * the content when free. Clicks go through /r/banner/{id} (counted).
+ * `variant="mobile"`: a card in the page content (phones), booked or free.
+ * Clicks go through /r/banner/{id} (counted).
  */
 export async function BannerSlot({
   locale,
@@ -163,20 +140,10 @@ export async function BannerSlot({
         banner={banner}
         label={t("label")}
         cta={t("defaultCta")}
-        compact={variant === "mobile"}
+        inline={variant === "mobile"}
       />
     );
-    return variant === "mobile" ? (
-      <>
-        <MobileBannerBar bannerId={banner.id} closeLabel={t("close")}>
-          {card}
-        </MobileBannerBar>
-        {/* Room so the strip doesn't cover the end of the page. */}
-        <div className="h-32 lg:hidden" aria-hidden />
-      </>
-    ) : (
-      card
-    );
+    return card;
   }
 
   if (variant === "mobile")
@@ -184,7 +151,7 @@ export async function BannerSlot({
       <a
         href={offerHref}
         data-nosnippet
-        className="relative flex items-center gap-4 overflow-hidden rounded-2xl bg-linear-to-br from-primary to-primary/80 p-4 text-primary-foreground shadow-md"
+        className="relative mb-10 flex items-center gap-4 overflow-hidden rounded-2xl bg-linear-to-br from-primary to-primary/80 p-4 text-primary-foreground shadow-md"
       >
         <span className={`pointer-events-none absolute inset-0 ${stripes}`} />
         <span className="relative flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/15">

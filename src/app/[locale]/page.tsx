@@ -124,7 +124,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       <BannerLayout
         locale={locale}
         as="div"
-        className="space-y-16 py-10"
+        // Phones: the banner card comes first, right under the hero, which
+        // already ends with its own padding.
+        className="space-y-16 py-10 max-lg:pt-0"
         banner={{
           candidates: [{ scope: "home", id: null }],
           offer: { scope: "home" },

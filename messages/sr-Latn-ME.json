@@ -670,7 +670,6 @@
   "Banner": {
     "label": "Oglas",
     "defaultCta": "Pogledaj ponudu",
-    "close": "Zatvori oglas",
     "emptyBadge": "Slobodno mjesto",
     "emptyTitle": "Tvoj brend ovdje",
     "emptyText": {

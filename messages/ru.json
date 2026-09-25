@@ -670,7 +670,6 @@
   "Banner": {
     "label": "Реклама",
     "defaultCta": "Смотреть предложение",
-    "close": "Закрыть рекламу",
     "emptyBadge": "Свободно",
     "emptyTitle": "Ваш бренд здесь",
     "emptyText": {
