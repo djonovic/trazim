@@ -1,6 +1,7 @@
 import { ArrowLeft, PartyPopper } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { SetAlternates } from "@/components/layout/alternates";
 import {
   BusinessEditor,
   type EditorBusiness,
@@ -13,6 +14,7 @@ import { tr } from "@/lib/i18n-fields";
 import { shortName } from "@/lib/queries/businesses";
 import { getOwnedBusiness, listRecentInquiries } from "@/lib/queries/panel";
 import { getTaxonomy } from "@/lib/queries/taxonomy";
+import { localePaths } from "@/lib/seo/metadata";
 
 const LANGUAGES = [
   "sr-Latn-ME",
@@ -58,9 +60,18 @@ export default async function EditBusinessPage({
     getPathname({ locale, href: { pathname: "/panel/[id]", params: { id } } }),
   );
   const t = await getTranslations({ locale, namespace: "Panel" });
+  const alternates = (
+    <SetAlternates
+      paths={localePaths({ pathname: "/panel/[id]", params: { id } })}
+    />
+  );
   const tu = await getTranslations({ locale, namespace: "Units" });
+  const tWizard = await getTranslations({ locale, namespace: "Wizard" });
   const tw = await getTranslations({ locale, namespace: "Weekdays" });
-  const created = (await searchParams).created === "1";
+  const query = await searchParams;
+  const created = query.created === "1";
+  const photosFailed = Number(query.photosFailed) || 0;
+  const photosTotal = Number(query.photosTotal) || 0;
 
   const [business, { services, cities }] = await Promise.all([
     getOwnedBusiness(id, user.id),
@@ -69,6 +80,7 @@ export default async function EditBusinessPage({
   if (!business) {
     return (
       <main className="mx-auto max-w-xl px-4 py-16 text-center">
+        {alternates}
         <p className="text-muted-foreground">{t("notFound")}</p>
         <Link
           href="/panel"
@@ -184,6 +196,7 @@ export default async function EditBusinessPage({
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-8">
+      {alternates}
       <Link
         href="/panel"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -211,6 +224,17 @@ export default async function EditBusinessPage({
         <p className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground">
           <PartyPopper className="size-5 shrink-0" aria-hidden />
           {t("created")}
+        </p>
+      )}
+      {created && photosFailed > 0 && (
+        <p
+          role="alert"
+          className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm"
+        >
+          {tWizard("errors.photosFailed", {
+            failed: photosFailed,
+            total: Math.max(photosTotal, photosFailed),
+          })}
         </p>
       )}
       <BusinessEditor

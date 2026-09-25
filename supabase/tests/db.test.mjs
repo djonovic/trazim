@@ -161,17 +161,23 @@ const biz = await as(
     ).id,
 );
 check("owner creates business", Boolean(biz));
-check(
-  "owner can't create verified business",
-  await fails(
-    as("authenticated", owner, () =>
-      db.query(
-        `insert into businesses (owner_id, slug, name, city_id, verified_at) values ($1, 'x-y', 'X', $2, now())`,
-        [owner, pg],
-      ),
-    ),
+// Owners can't pre-fill verification, ratings or counters: they're reset.
+const forged = await as("authenticated", owner, () =>
+  one(
+    `insert into businesses (owner_id, slug, name, city_id, verified_at, rating_avg, rating_count, views_count)
+     values ($1, 'x-y', 'X', $2, now(), 5, 900, 50000)
+     returning id, verified_at, rating_avg, rating_count, views_count`,
+    [owner, pg],
   ),
 );
+check(
+  "owner can't create verified or pre-rated business",
+  forged.verified_at === null &&
+    Number(forged.rating_avg) === 0 &&
+    forged.rating_count === 0 &&
+    forged.views_count === 0,
+);
+await db.query(`delete from businesses where id=$1`, [forged.id]);
 check(
   "can't create business for someone else",
   await fails(
@@ -741,11 +747,22 @@ check(
     ),
   ),
 );
+check(
+  "no WhatsApp set: nothing revealed, no fallback to the phone",
+  (
+    await as("service_role", null, () =>
+      db.query(`select reveal_business_contact($1, 'whatsapp') as v`, [biz]),
+    )
+  ).rows[0].v === null,
+);
+await db.query(`update businesses set whatsapp='+38267111222' where id=$1`, [
+  biz,
+]);
 const revealed = await as("service_role", null, () =>
   db.query(`select reveal_business_contact($1, 'whatsapp') as v`, [biz]),
 );
 check(
-  "service role reveals contact (whatsapp falls back to phone) and counts it",
+  "service role reveals contact and counts it",
   revealed.rows[0].v === "+38267111222" &&
     (
       await one(
@@ -827,14 +844,19 @@ const customer = (
 ).id;
 const niksic = (await one(`select id from cities where slug='niksic'`)).id;
 const newInquiry = (cityId, extra = "") =>
-  as("authenticated", customer, async () =>
-    (
-      await one(
-        `insert into inquiries (user_id, service_id, city_id, body, phone, status${extra ? ", business_id" : ""})
+  as(
+    "authenticated",
+    customer,
+    async () =>
+      (
+        await one(
+          `insert into inquiries (user_id, service_id, city_id, body, phone, status${extra ? ", business_id" : ""})
          values ($1, $2, $3, 'Curi bojler u kupatilu, treba zamjena ventila.', '+38269123456', 'approved'${extra ? ", $4" : ""}) returning id`,
-        extra ? [customer, plumber, cityId, extra] : [customer, plumber, cityId],
-      )
-    ).id,
+          extra
+            ? [customer, plumber, cityId, extra]
+            : [customer, plumber, cityId],
+        )
+      ).id,
   );
 const inq = await newInquiry(pg);
 check(
@@ -970,7 +992,8 @@ const clicked = await as("service_role", null, () =>
 check(
   "click is counted and returns the link",
   clicked.url === "https://example.me" &&
-    (await one(`select clicks from banners where id=$1`, [banner])).clicks === 1,
+    (await one(`select clicks from banners where id=$1`, [banner])).clicks ===
+      1,
 );
 check(
   "banner scope fields enforced (home banner can't have a service)",
@@ -1027,6 +1050,154 @@ check(
     )
   ).rows.length === 0,
 );
+
+// --- Hardening -----------------------------------------------------------------------
+// Inquiries: a rejected one can't be re-approved by its author, dates are the server's.
+const inqRejected = await as(
+  "authenticated",
+  user2,
+  async () =>
+    await one(
+      `insert into inquiries (user_id, service_id, city_id, body, status, created_at)
+       values ($1, $2, $3, 'Treba mi majstor za bojler u stanu.', 'approved', '2000-01-01') returning id, created_at`,
+      [user2, plumber, pg],
+    ),
+);
+check(
+  "inquiry created_at can't be backdated",
+  new Date(inqRejected.created_at).getFullYear() > 2000,
+);
+await as("authenticated", admin, () =>
+  db.query(`update inquiries set status='rejected' where id=$1`, [
+    inqRejected.id,
+  ]),
+);
+check(
+  "author can't re-approve a rejected inquiry",
+  await fails(
+    as("authenticated", user2, () =>
+      db.query(`update inquiries set status='approved' where id=$1`, [
+        inqRejected.id,
+      ]),
+    ),
+  ),
+);
+
+// Reviews: a hidden review can't be deleted by its author (and re-posted).
+const hiddenReview = await as(
+  "authenticated",
+  customer,
+  async () =>
+    (
+      await one(
+        `insert into reviews (business_id, user_id, rating, body) values ($1, $2, 1, 'Loše iskustvo sa ovim majstorom.') returning id`,
+        [biz, customer],
+      )
+    ).id,
+);
+await as("authenticated", admin, () =>
+  db.query(`update reviews set status='hidden' where id=$1`, [hiddenReview]),
+);
+await as("authenticated", customer, () =>
+  db.query(`delete from reviews where id=$1`, [hiddenReview]),
+);
+check(
+  "author can't delete a review hidden by an admin",
+  Boolean(await one(`select id from reviews where id=$1`, [hiddenReview])),
+);
+
+// Service, town and photo limits hold for direct API writes.
+const extraServices = (
+  await db.query(`select id from services where id <> $1 order by id limit 3`, [
+    plumber,
+  ])
+).rows.map((r) => r.id);
+await db.query(
+  `delete from business_services where business_id=$1 and service_id <> $2`,
+  [biz, plumber],
+);
+await db.query(
+  `update business_services set is_primary=true where business_id=$1`,
+  [biz],
+);
+check(
+  "at most 3 main services through the API",
+  await fails(
+    as("authenticated", owner, async () => {
+      for (const id of extraServices)
+        await db.query(
+          `insert into business_services (business_id, service_id, is_primary) values ($1, $2, true)`,
+          [biz, id],
+        );
+    }),
+  ),
+);
+await db.query(
+  `delete from business_services where business_id=$1 and service_id <> $2`,
+  [biz, plumber],
+);
+check(
+  "photo rows must point into the business's own folder",
+  await fails(
+    as("authenticated", owner, () =>
+      db.query(
+        `insert into business_photos (business_id, storage_path) values ($1, $2)`,
+        [biz, `${biz}/../../review-photos/x.webp`],
+      ),
+    ),
+  ),
+);
+
+// Replacing hours is all-or-nothing, and only for the owner.
+await as("authenticated", owner, () =>
+  db.query(
+    `select set_business_hours($1, '[{"weekday":1,"opens_at":"08:00","closes_at":"16:00"}]')`,
+    [biz],
+  ),
+);
+await as("authenticated", owner, () =>
+  db
+    .query(
+      `select set_business_hours($1, '[{"weekday":9,"opens_at":"08:00","closes_at":"16:00"}]')`,
+      [biz],
+    )
+    .catch(() => null),
+);
+check(
+  "failed hours save keeps the old hours",
+  (
+    await one(
+      `select count(*)::int n from business_hours where business_id=$1`,
+      [biz],
+    )
+  ).n === 1,
+);
+check(
+  "other user can't replace hours",
+  await fails(
+    as("authenticated", user2, () =>
+      db.query(`select set_business_hours($1, '[]')`, [biz]),
+    ),
+  ),
+);
+
+// Rate limits: server-only, and they count.
+check(
+  "anon can't call rate_limit_hit",
+  await fails(
+    as("anon", null, () => db.query(`select rate_limit_hit('x', 1, 60)`)),
+  ),
+);
+const hits = [];
+for (let i = 0; i < 2; i++)
+  hits.push(
+    (
+      await as("service_role", null, () =>
+        one(`select rate_limit_hit('test:ip', 1, 60) as ok`),
+      )
+    ).ok,
+  );
+check("rate limit allows then blocks", hits[0] === true && hits[1] === false);
 
 console.log(failures ? `\n${failures} FAILED` : "\nAll checks passed");
 process.exit(failures ? 1 : 0);

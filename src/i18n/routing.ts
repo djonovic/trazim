@@ -5,6 +5,8 @@ export const routing = defineRouting({
   defaultLocale: "sr-Latn-ME",
   localePrefix: "as-needed",
   localeDetection: false,
+  // Language comes from the URL only; no cookie to disclose or to vary on.
+  localeCookie: false,
   // Service slugs differ per locale, so the middleware can't compute
   // alternates for dynamic pages; pages emit hreflang via metadata instead.
   alternateLinks: false,

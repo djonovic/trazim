@@ -250,6 +250,10 @@ export function ReviewComposer({
         );
         return;
       }
+      // The review is saved from here on: whatever happens with the photos,
+      // reload it so a retry edits it instead of submitting it again.
+      clearDraft(businessId);
+      let photoError: string | null = null;
       if (files.length) {
         setProgress(t("uploading", { done: 0, total: files.length }));
         const uploaded = await uploadPhotos(
@@ -259,22 +263,33 @@ export function ReviewComposer({
           "review-photos",
         );
         setProgress(null);
-        const added = await addReviewPhotos(res.reviewId, uploaded);
+        const added = uploaded.length
+          ? await addReviewPhotos(res.reviewId, uploaded)
+          : ({ ok: true } as const);
+        const failed = files.length - uploaded.length;
         if (!added.ok) {
-          setError(
-            added.error === "photos" ? t("errors.photos") : t("errors.generic"),
-          );
-          return;
+          photoError =
+            added.error === "photos" ? t("errors.photos") : t("errors.generic");
+        } else {
+          setFiles([]);
+          if (failed)
+            photoError = t("errors.photosFailed", {
+              failed,
+              total: files.length,
+            });
         }
-        setFiles([]);
       }
-      clearDraft(businessId);
-      setOpen(false);
-      setDone(t("thanks"));
       const result = await fetchOwn();
       setOwn(result.review);
       setNeedsName(result.needsName);
       router.refresh();
+      if (photoError) {
+        setNotice(null);
+        setError(photoError);
+        return;
+      }
+      setOpen(false);
+      setDone(t("thanks"));
     });
   }
 

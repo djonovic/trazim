@@ -98,6 +98,7 @@ export async function revealInquiry(
       p_business_id: businessId,
     })
     .maybeSingle();
+  if (error?.message.includes("rate_limited")) return fail("limit");
   if (error || !data?.phone) return fail("generic");
   return { ok: true, phone: data.phone, name: data.name };
 }

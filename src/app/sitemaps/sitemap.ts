@@ -6,7 +6,7 @@ import { getAllPriceStats } from "@/lib/queries/prices";
 import { getTaxonomy, serviceSlug, type City } from "@/lib/queries/taxonomy";
 import { SITE } from "@/lib/site";
 import { publicDb, photoUrl } from "@/lib/supabase/public";
-import { dbError } from "@/lib/supabase/errors";
+import { fetchAll } from "@/lib/supabase/errors";
 
 // Sitemaps by page type (/sitemaps/sitemap/{id}.xml), listed in /sitemap.xml
 // and robots.txt. Only indexable URLs: the same rules as the pages' noindex
@@ -61,14 +61,18 @@ function localized(
 
 /** Active businesses with what the sitemap needs, newest change first. */
 async function activeBusinesses() {
-  const { data, error } = await publicDb
-    .from("businesses")
-    .select(
-      "id, slug, moderated_at, updated_at, business_services(service_id), business_cities(city_id), business_photos(storage_path, is_cover, sort_order)",
-    )
-    .eq("status", "active");
-  if (error) throw dbError(error, "sitemap businesses");
-  return data;
+  return fetchAll(
+    (from, to) =>
+      publicDb
+        .from("businesses")
+        .select(
+          "id, slug, moderated_at, updated_at, business_services(service_id), business_cities(city_id), business_photos(storage_path, is_cover, sort_order)",
+        )
+        .eq("status", "active")
+        .order("id")
+        .range(from, to),
+    "sitemap businesses",
+  );
 }
 
 /** Same rule as getIndexability(): a settlement counts only its own businesses. */

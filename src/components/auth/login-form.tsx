@@ -1,9 +1,14 @@
 "use client";
 
 import { Loader2, Mail } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { callbackUrl, emailConfirmUrl } from "@/lib/auth/redirect";
+import type { Locale } from "@/i18n/routing";
+import {
+  callbackUrl,
+  emailConfirmUrl,
+  loginPathFor,
+} from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/client";
 
 type Provider = "google";
@@ -34,6 +39,7 @@ function GoogleIcon() {
 /** Google or a magic link. `next` is where the user lands after signing in. */
 export function LoginForm({ next }: { next: string }) {
   const t = useTranslations("Auth");
+  const locale = useLocale() as Locale;
   const [email, setEmail] = useState("");
   const [pending, setPending] = useState<Provider | "email" | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -65,9 +71,11 @@ export function LoginForm({ next }: { next: string }) {
     const { error } = await createClient().auth.signInWithOtp({
       email: value,
       options: {
+        // Always the login page: only it reads the token, whether the form
+        // is on /prijava or in the sign-in dialog on another page.
         emailRedirectTo: emailConfirmUrl(
           window.location.origin,
-          window.location.pathname,
+          loginPathFor(next, locale),
           next,
         ),
       },

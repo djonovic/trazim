@@ -1,7 +1,7 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import type { Tables } from "@/lib/supabase/database.types";
-import { dbError } from "@/lib/supabase/errors";
+import { dbError, fetchAll } from "@/lib/supabase/errors";
 import { supabaseUrl } from "@/lib/env";
 import { photoUrl, publicDb } from "@/lib/supabase/public";
 
@@ -130,25 +130,37 @@ export function recommendedScore(b: BusinessCard) {
 const byRecommended = (a: BusinessCard, b: BusinessCard) =>
   recommendedScore(b) - recommendedScore(a);
 
-/** Businesses offering a service in any of the given cities (their service area). */
+/**
+ * Businesses offering a service in any of the given cities (their service
+ * area). Without a limit it returns all of them, so the ranking and counts
+ * cover every match, not just the first page the database returned.
+ */
 export const listBusinesses = unstable_cache(
   async (opts: { serviceId?: number; cityIds?: number[]; limit?: number }) => {
-    let query = publicDb
-      .from("businesses")
-      .select(CARD_COLUMNS)
-      .eq("status", "active");
-    if (opts.serviceId)
-      query = query.eq("business_services.service_id", opts.serviceId);
-    if (opts.cityIds?.length)
-      query = query.in("business_cities.city_id", opts.cityIds);
-
-    const { data, error } = await query.limit(opts.limit ?? 300);
-    if (error) throw dbError(error, "listBusinesses");
+    const page = (from: number, to: number) => {
+      let query = publicDb
+        .from("businesses")
+        .select(CARD_COLUMNS)
+        .eq("status", "active");
+      if (opts.serviceId)
+        query = query.eq("business_services.service_id", opts.serviceId);
+      if (opts.cityIds?.length)
+        query = query.in("business_cities.city_id", opts.cityIds);
+      return query.order("id").range(from, to);
+    };
+    let data: unknown[];
+    if (opts.limit) {
+      const res = await page(0, opts.limit - 1);
+      if (res.error) throw dbError(res.error, "listBusinesses");
+      data = res.data;
+    } else {
+      data = await fetchAll(page, "listBusinesses");
+    }
     return (data as unknown as CardRow[])
       .map((r) => toCard(r, opts.serviceId))
       .sort(byRecommended);
   },
-  ["list-businesses-v1"],
+  ["list-businesses-v2"],
   { tags: ["businesses"], revalidate: HOUR },
 );
 
@@ -343,8 +355,8 @@ export const getBusinessProfile = unstable_cache(
       ...data,
       channels: {
         phone: Boolean(channels?.has_phone),
-        viber: Boolean(channels?.has_viber || channels?.has_phone),
-        whatsapp: Boolean(channels?.has_whatsapp || channels?.has_phone),
+        viber: Boolean(channels?.has_viber),
+        whatsapp: Boolean(channels?.has_whatsapp),
         email: Boolean(channels?.has_email),
       },
       photos: [...data.business_photos]
@@ -383,11 +395,16 @@ export const getSiteStats = unstable_cache(
 /** Business counts per service (all of Montenegro) and per service × city. */
 export const getCoverage = unstable_cache(
   async () => {
-    const { data, error } = await publicDb
-      .from("businesses")
-      .select("id, business_services(service_id), business_cities(city_id)")
-      .eq("status", "active");
-    if (error) throw dbError(error, "getCoverage");
+    const data = await fetchAll(
+      (from, to) =>
+        publicDb
+          .from("businesses")
+          .select("id, business_services(service_id), business_cities(city_id)")
+          .eq("status", "active")
+          .order("id")
+          .range(from, to),
+      "getCoverage",
+    );
 
     const perService: Record<number, number> = {};
     const perServiceCity: Record<string, number> = {};

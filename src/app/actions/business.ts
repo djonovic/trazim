@@ -4,6 +4,7 @@ import { updateTag } from "next/cache";
 import { z } from "zod";
 import {
   hoursSchema,
+  messengerNumber,
   newBusinessSchema,
   priceListSchema,
   profileSchema,
@@ -102,8 +103,8 @@ export async function createBusiness(
         name: v.name,
         description: v.description,
         phone: v.phone,
-        viber: v.viberSame ? v.phone : null,
-        whatsapp: v.whatsappSame ? v.phone : null,
+        viber: messengerNumber(v.viber, v.phone),
+        whatsapp: messengerNumber(v.whatsapp, v.phone),
         email: v.email,
         website,
         instagram,
@@ -116,6 +117,11 @@ export async function createBusiness(
       .single();
 
     if (error?.code === "23505") continue;
+    // Raised by guard_business_insert.
+    if (error?.message.includes("too_many_businesses"))
+      return fail("limit", ["tooMany"]);
+    if (error?.message.includes("owner_blocked"))
+      return fail("blocked", ["blocked"]);
     if (error || !data) {
       console.error("createBusiness insert failed", error?.message);
       return fail("generic");
@@ -164,8 +170,8 @@ export async function updateProfile(
       name: v.name,
       description: v.description,
       phone: v.phone,
-      viber: v.viber ?? v.phone,
-      whatsapp: v.whatsapp ?? v.phone,
+      viber: messengerNumber(v.viber, v.phone),
+      whatsapp: messengerNumber(v.whatsapp, v.phone),
       email: v.email,
       website: v.website,
       instagram: v.instagram,
@@ -202,37 +208,21 @@ export async function setServicesAndCities(
   const db = owner.supabase;
 
   const services = [
-    ...primaryIds.map((id) => ({
-      business_id: businessId,
-      service_id: id,
-      is_primary: true,
-    })),
+    ...primaryIds.map((id) => ({ service_id: id, is_primary: true })),
     ...otherIds
       .filter((id) => !primaryIds.includes(id))
-      .map((id) => ({
-        business_id: businessId,
-        service_id: id,
-        is_primary: false,
-      })),
+      .map((id) => ({ service_id: id, is_primary: false })),
   ];
-  const cities = [...new Set([cityId, ...cityIds])].map((id) => ({
-    business_id: businessId,
-    city_id: id,
-  }));
 
-  const steps = [
-    await db
-      .from("businesses")
-      .update({ city_id: cityId })
-      .eq("id", businessId),
-    await db.from("business_services").delete().eq("business_id", businessId),
-    await db.from("business_services").insert(services),
-    await db.from("business_cities").delete().eq("business_id", businessId),
-    await db.from("business_cities").insert(cities),
-  ];
-  const failed = steps.find((s) => s.error);
-  if (failed) {
-    console.error("setServicesAndCities failed", failed.error?.message);
+  // One transaction: a failed insert keeps the old services and towns.
+  const { error } = await db.rpc("set_business_services_and_cities", {
+    p_business_id: businessId,
+    p_city_id: cityId,
+    p_services: services,
+    p_city_ids: [...new Set([cityId, ...cityIds])],
+  });
+  if (error) {
+    console.error("setServicesAndCities failed", error.message);
     return fail("generic");
   }
   refreshPublicPages(owner.business.slug);
@@ -249,21 +239,18 @@ export async function setHours(
   if (!owner) return fail("auth");
   const db = owner.supabase;
 
-  const del = await db
-    .from("business_hours")
-    .delete()
-    .eq("business_id", businessId);
-  const ins = parsed.data.length
-    ? await db.from("business_hours").insert(
-        parsed.data.map((h) => ({
-          business_id: businessId,
-          weekday: h.weekday,
-          opens_at: h.opensAt,
-          closes_at: h.closesAt,
-        })),
-      )
-    : { error: null };
-  if (del.error || ins.error) return fail("generic");
+  const { error } = await db.rpc("set_business_hours", {
+    p_business_id: businessId,
+    p_hours: parsed.data.map((h) => ({
+      weekday: h.weekday,
+      opens_at: h.opensAt,
+      closes_at: h.closesAt,
+    })),
+  });
+  if (error) {
+    console.error("setHours failed", error.message);
+    return fail("generic");
+  }
   refreshPublicPages(owner.business.slug);
   return { ok: true };
 }
@@ -278,29 +265,20 @@ export async function setPriceList(
   if (!owner) return fail("auth");
   const db = owner.supabase;
 
-  const del = await db
-    .from("price_list_items")
-    .delete()
-    .eq("business_id", businessId);
-  const ins = parsed.data.length
-    ? await db.from("price_list_items").insert(
-        parsed.data.map((item, i) => ({
-          business_id: businessId,
-          service_id: item.serviceId,
-          name: item.name,
-          kind: item.kind,
-          price_from: item.priceFrom,
-          price_to: item.priceTo,
-          unit: item.unit,
-          sort_order: i,
-        })),
-      )
-    : { error: null };
-  if (del.error || ins.error) {
-    console.error(
-      "setPriceList failed",
-      del.error?.message ?? ins.error?.message,
-    );
+  const { error } = await db.rpc("set_business_price_list", {
+    p_business_id: businessId,
+    p_items: parsed.data.map((item, i) => ({
+      service_id: item.serviceId,
+      name: item.name,
+      kind: item.kind,
+      price_from: item.priceFrom,
+      price_to: item.priceTo,
+      unit: item.unit,
+      sort_order: i,
+    })),
+  });
+  if (error) {
+    console.error("setPriceList failed", error.message);
     return fail("generic");
   }
   refreshPublicPages(owner.business.slug);
@@ -400,17 +378,11 @@ export async function setCoverPhoto(
   const owner = await ownerClient(businessId);
   if (!owner) return fail("auth");
   const db = owner.supabase;
-  // Unique index allows one cover per business: clear first, then set.
-  await db
-    .from("business_photos")
-    .update({ is_cover: false })
-    .eq("business_id", businessId)
-    .eq("is_cover", true);
-  const { error } = await db
-    .from("business_photos")
-    .update({ is_cover: true })
-    .eq("id", photoId)
-    .eq("business_id", businessId);
+  // Checks the photo first, then moves the cover in one transaction.
+  const { error } = await db.rpc("set_business_cover", {
+    p_business_id: businessId,
+    p_photo_id: photoId,
+  });
   if (error) return fail("generic");
   refreshPublicPages(owner.business.slug);
   return { ok: true };

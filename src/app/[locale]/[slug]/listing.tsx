@@ -117,6 +117,8 @@ export async function listingMetadata(
     // Thin-content guard: only index combinations that have real businesses
     // (for a settlement, businesses that list it themselves).
     noindex: !(await getIndexability()).combo(service.id, city),
+    // Page 1 has its own image file; later pages reuse it.
+    image: page === 1 ? false : `/${locale}/${slug}/opengraph-image`,
   });
 }
 

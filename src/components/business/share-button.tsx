@@ -14,11 +14,16 @@ export function ShareButton({ title }: { title: string }) {
       try {
         await navigator.share({ title, url });
         return;
-      } catch {
-        // Cancelled: fall through to copying.
+      } catch (e) {
+        // Cancelled by the user: done. Other failures fall through to copying.
+        if (e instanceof DOMException && e.name === "AbortError") return;
       }
     }
-    await navigator.clipboard.writeText(url);
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      return;
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

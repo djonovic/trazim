@@ -12,6 +12,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Skip API routes, Next internals, files with an extension and generated
-  // social images (their URLs carry the internal locale prefix).
-  matcher: "/((?!api|r/|_next|_vercel|.*\\..*|.*opengraph-image).*)",
+  // social images (their URLs carry the internal locale prefix), and the
+  // generated favicons (/icon, /apple-icon), which would otherwise 404.
+  matcher:
+    "/((?!api|r/|_next|_vercel|icon$|apple-icon$|.*\\..*|.*opengraph-image).*)",
 };

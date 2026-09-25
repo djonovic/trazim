@@ -1,7 +1,11 @@
 "use client";
 
 import { Globe, Loader2, Mail, Phone } from "lucide-react";
-import { InstagramIcon, ViberIcon, WhatsAppIcon } from "@/components/icons/apps";
+import {
+  InstagramIcon,
+  ViberIcon,
+  WhatsAppIcon,
+} from "@/components/icons/apps";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { revealContact } from "@/app/actions/contact";
@@ -40,6 +44,7 @@ export function ContactButtons({
   const t = useTranslations("Profile");
   const [revealed, setRevealed] = useState<Partial<Record<Kind, string>>>({});
   const [pending, setPending] = useState<Kind | null>(null);
+  const [failed, setFailed] = useState<"limit" | "generic" | null>(null);
   const [, startTransition] = useTransition();
 
   function open(kind: Kind) {
@@ -50,9 +55,14 @@ export function ContactButtons({
     }
     setPending(kind);
     startTransition(async () => {
-      const value = await revealContact(businessId, kind);
+      const result = await revealContact(businessId, kind);
       setPending(null);
-      if (!value) return;
+      if ("error" in result) {
+        setFailed(result.error);
+        return;
+      }
+      setFailed(null);
+      const value = result.value;
       setRevealed((prev) => ({ ...prev, [kind]: value }));
       // Phone: show the number first (desktop users often copy it); apps open right away.
       if (kind !== "phone") window.location.href = linkFor(kind, value);
@@ -103,12 +113,21 @@ export function ContactButtons({
     );
   };
 
+  const error = failed && (
+    <p role="alert" className="text-sm text-destructive">
+      {t(failed === "limit" ? "contactLimit" : "contactError")}
+    </p>
+  );
+
   if (layout === "bar") {
     return (
-      <div className="flex gap-2">
-        {button("phone", t("call"), Phone, true)}
-        {button("viber", t("viber"), ViberIcon)}
-        {button("whatsapp", t("whatsapp"), WhatsAppIcon)}
+      <div className="space-y-1.5">
+        <div className="flex gap-2">
+          {button("phone", t("call"), Phone, true)}
+          {button("viber", t("viber"), ViberIcon)}
+          {button("whatsapp", t("whatsapp"), WhatsAppIcon)}
+        </div>
+        {error}
       </div>
     );
   }
@@ -116,10 +135,17 @@ export function ContactButtons({
   return (
     <div className="grid gap-2">
       {button("phone", t("call"), Phone, true)}
-      <div className="grid grid-cols-2 gap-2">
-        {button("viber", t("viber"), ViberIcon)}
-        {button("whatsapp", t("whatsapp"), WhatsAppIcon)}
-      </div>
+      {(channels.viber || channels.whatsapp) && (
+        <div
+          className={cn(
+            "grid gap-2",
+            channels.viber && channels.whatsapp && "grid-cols-2",
+          )}
+        >
+          {button("viber", t("viber"), ViberIcon)}
+          {button("whatsapp", t("whatsapp"), WhatsAppIcon)}
+        </div>
+      )}
       {button("email", t("email"), Mail)}
       {(website || instagram) && (
         <div className="grid grid-cols-2 gap-2">
@@ -151,6 +177,7 @@ export function ContactButtons({
           )}
         </div>
       )}
+      {error}
     </div>
   );
 }

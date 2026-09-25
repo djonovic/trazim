@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { safeNext } from "@/lib/auth/redirect";
+import { loginPathFor, safeNext } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/server";
 
 /** OAuth (Google) and magic-link landing: exchanges the PKCE code for a session cookie. */
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     console.error("exchangeCodeForSession failed", error.message);
   }
 
-  const login = new URL("/prijava", origin);
+  const login = new URL(loginPathFor(next), origin);
   login.searchParams.set("error", "callback");
   login.searchParams.set("next", next);
   return NextResponse.redirect(login);

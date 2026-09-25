@@ -14,14 +14,18 @@ const PRIVATE_ROUTES = [
   "/pretraga",
 ] as const;
 
-/** "/panel$" and "/panel/" per locale, so slugs that merely start with it stay crawlable. */
+/**
+ * "/panel$", "/panel?" and "/panel/" per locale, so slugs that merely start
+ * with it stay crawlable. "$" anchors the whole URL including the query, so
+ * "/pretraga?q=…" needs its own rule.
+ */
 const disallow = [
   "/api/",
   "/r/",
   ...routing.locales.flatMap((locale) =>
     PRIVATE_ROUTES.flatMap((href) => {
       const path = getPathname({ locale, href });
-      return [`${path}$`, `${path}/`];
+      return [`${path}$`, `${path}?`, `${path}/`];
     }),
   ),
 ];

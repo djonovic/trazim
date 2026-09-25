@@ -2,12 +2,14 @@ import { BadgeCheck, Eye, MousePointerClick, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Rating } from "@/components/business/rating";
+import { SetAlternates } from "@/components/layout/alternates";
 import { getPathname, Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import { requireUser } from "@/lib/auth/session";
 import { tr } from "@/lib/i18n-fields";
 import { getMyBusinesses } from "@/lib/queries/panel";
 import { getTaxonomy } from "@/lib/queries/taxonomy";
+import { localePaths } from "@/lib/seo/metadata";
 
 export async function generateMetadata({
   params,
@@ -44,6 +46,7 @@ export default async function PanelPage({
 
   return (
     <main className="mx-auto max-w-4xl space-y-8 px-4 py-10">
+      <SetAlternates paths={localePaths("/panel")} />
       <header className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-extrabold tracking-tight">{t("title")}</h1>
         <Link

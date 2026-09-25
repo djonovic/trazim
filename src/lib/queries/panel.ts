@@ -9,16 +9,24 @@ export async function getMyBusinesses(userId: string) {
   const since = new Date(Date.now() - 30 * 86400_000)
     .toISOString()
     .slice(0, 10);
-  const [{ data: businesses }, { data: stats }] = await Promise.all([
-    supabase
-      .from("businesses")
-      .select(
-        "id, slug, name, status, moderated_at, verified_at, rating_avg, rating_count, city_id, created_at",
-      )
-      .eq("owner_id", userId)
-      .order("created_at"),
-    supabase.from("business_daily_stats").select("*").gte("day", since),
-  ]);
+  const { data: businesses } = await supabase
+    .from("businesses")
+    .select(
+      "id, slug, name, status, moderated_at, verified_at, rating_avg, rating_count, city_id, created_at",
+    )
+    .eq("owner_id", userId)
+    .order("created_at");
+  // Only this user's businesses: for an admin, RLS would return every row.
+  const { data: stats } = businesses?.length
+    ? await supabase
+        .from("business_daily_stats")
+        .select("*")
+        .in(
+          "business_id",
+          businesses.map((b) => b.id),
+        )
+        .gte("day", since)
+    : { data: [] };
   return (businesses ?? []).map((b) => {
     const rows = (stats ?? []).filter((s) => s.business_id === b.id);
     const sum = (key: keyof (typeof rows)[number]) =>

@@ -31,7 +31,8 @@ async function toWebp(file: File) {
  * Uploads into {bucket}/{folderId}/ and returns the storage paths:
  * business-photos/{businessId} (owner only, for addPhotos()) or
  * review-photos/{reviewId} (review author only, for addReviewPhotos()).
- * Files that can't be decoded are skipped.
+ * Files that can't be decoded (e.g. HEIC) or fail to upload are skipped, so
+ * callers compare the result's length with files.length to report them.
  */
 export async function uploadPhotos(
   folderId: string,

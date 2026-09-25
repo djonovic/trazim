@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { ViberIcon, WhatsAppIcon } from "@/components/icons/apps";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   useMemo,
   useRef,
@@ -33,6 +33,8 @@ import {
 import { revealInquiry } from "@/app/actions/inquiries";
 import { replyToReview } from "@/app/actions/reviews";
 import { Stars } from "@/components/business/review-list";
+import { MessengerField } from "@/components/panel/messenger-field";
+import { messengerFromStored } from "@/lib/business-input";
 import { useRouter } from "@/i18n/navigation";
 import { uploadPhotos } from "@/lib/upload-photos";
 import { cn } from "@/lib/utils";
@@ -148,7 +150,15 @@ function useSave() {
       setMessage(
         res.ok
           ? null
-          : field && ["name", "phone", "email", "services"].includes(field)
+          : field &&
+              [
+                "name",
+                "phone",
+                "viber",
+                "whatsapp",
+                "email",
+                "services",
+              ].includes(field)
             ? tw(`errors.${field}` as "errors.name")
             : tw("errors.generic"),
       );
@@ -263,12 +273,8 @@ function ProfileTab({
     name: business.name,
     description: business.description ?? "",
     phone: business.phone ?? "",
-    viber:
-      business.viber && business.viber !== business.phone ? business.viber : "",
-    whatsapp:
-      business.whatsapp && business.whatsapp !== business.phone
-        ? business.whatsapp
-        : "",
+    viber: messengerFromStored(business.viber, business.phone),
+    whatsapp: messengerFromStored(business.whatsapp, business.phone),
     email: business.email ?? "",
     website: business.website ?? "",
     instagram: business.instagram ?? "",
@@ -316,22 +322,20 @@ function ProfileTab({
             onChange={(e) => set({ phone: e.target.value })}
           />
         </Field>
-        <Field label={t("viber")}>
-          <input
-            className={input}
-            type="tel"
-            value={v.viber}
-            onChange={(e) => set({ viber: e.target.value })}
-          />
-        </Field>
-        <Field label={t("whatsapp")}>
-          <input
-            className={input}
-            type="tel"
-            value={v.whatsapp}
-            onChange={(e) => set({ whatsapp: e.target.value })}
-          />
-        </Field>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <MessengerField
+          app="viber"
+          value={v.viber}
+          onChange={(viber) => set({ viber })}
+          inputClassName={input}
+        />
+        <MessengerField
+          app="whatsapp"
+          value={v.whatsapp}
+          onChange={(whatsapp) => set({ whatsapp })}
+          inputClassName={input}
+        />
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label={tw("email")}>
@@ -466,7 +470,11 @@ function ServicesTab({
       )}
     >
       {name(id)}
-      <button type="button" onClick={() => remove(id)} aria-label="×">
+      <button
+        type="button"
+        onClick={() => remove(id)}
+        aria-label={tw("removeService", { name: name(id) })}
+      >
         <X className="size-3.5" />
       </button>
     </span>
@@ -694,12 +702,30 @@ function PricesTab({
     ...business.primaryServiceIds,
     ...business.otherServiceIds,
   ];
-  const [rows, setRows] = useState(business.prices);
+  // Prices stay as typed text ("12," mid-keystroke) and become numbers on submit.
+  const [rows, setRows] = useState(() =>
+    business.prices.map((p) => ({
+      ...p,
+      priceFrom: p.priceFrom == null ? "" : String(p.priceFrom),
+      priceTo: p.priceTo == null ? "" : String(p.priceTo),
+    })),
+  );
   const update = (i: number, patch: Partial<(typeof rows)[number]>) => {
     dirty();
     setRows((r) => r.map((x, j) => (j === i ? { ...x, ...patch } : x)));
   };
-  const num = (v: string) => (v === "" ? null : Number(v.replace(",", ".")));
+  // Digits plus a single decimal separator (comma or dot).
+  const clean = (v: string) => {
+    const s = v.replace(/[^\d.,]/g, "");
+    const at = s.search(/[.,]/);
+    return at < 0
+      ? s
+      : s.slice(0, at + 1) + s.slice(at + 1).replace(/[.,]/g, "");
+  };
+  const num = (v: string) => {
+    const n = Number(v.replace(",", "."));
+    return v === "" || !Number.isFinite(n) ? null : n;
+  };
 
   return (
     <form
@@ -709,7 +735,13 @@ function PricesTab({
         run(() =>
           setPriceList(
             business.id,
-            rows.filter((r) => r.name.trim()),
+            rows
+              .filter((r) => r.name.trim())
+              .map((r) => ({
+                ...r,
+                priceFrom: num(r.priceFrom),
+                priceTo: num(r.priceTo),
+              })),
           ),
         );
       }}
@@ -751,9 +783,9 @@ function PricesTab({
                   <input
                     className={input}
                     inputMode="decimal"
-                    value={row.priceFrom ?? ""}
+                    value={row.priceFrom}
                     onChange={(e) =>
-                      update(i, { priceFrom: num(e.target.value) })
+                      update(i, { priceFrom: clean(e.target.value) })
                     }
                   />
                 </Field>
@@ -762,9 +794,9 @@ function PricesTab({
                     <input
                       className={input}
                       inputMode="decimal"
-                      value={row.priceTo ?? ""}
+                      value={row.priceTo}
                       onChange={(e) =>
-                        update(i, { priceTo: num(e.target.value) })
+                        update(i, { priceTo: clean(e.target.value) })
                       }
                     />
                   </Field>
@@ -809,8 +841,8 @@ function PricesTab({
             {
               name: "",
               kind: "fixed",
-              priceFrom: null,
-              priceTo: null,
+              priceFrom: "",
+              priceTo: "",
               unit: "job",
               serviceId: serviceIds[0] ?? null,
             },
@@ -930,7 +962,14 @@ function PhotosTab({ business }: { business: EditorBusiness }) {
               ? await addPhotos(business.id, uploaded)
               : { ok: false };
             setProgress(null);
-            setError(res.ok ? null : tw("errors.generic"));
+            const failed = files.length - uploaded.length;
+            setError(
+              uploaded.length && !res.ok
+                ? tw("errors.generic")
+                : failed
+                  ? tw("errors.photosFailed", { failed, total: files.length })
+                  : null,
+            );
             router.refresh();
           });
         }}
@@ -943,6 +982,14 @@ function PhotosTab({ business }: { business: EditorBusiness }) {
     </div>
   );
 }
+
+// Formatted in the configured time zone (Europe/Podgorica) so server and
+// browser render the same date.
+const dateFormat = {
+  day: "numeric",
+  month: "numeric",
+  year: "numeric",
+} as const;
 
 function ReviewsTab({ business }: { business: EditorBusiness }) {
   const t = useTranslations("Panel");
@@ -968,6 +1015,7 @@ function ReviewReply({
 }) {
   const t = useTranslations("Panel");
   const tr = useTranslations("Review");
+  const format = useFormatter();
   const router = useRouter();
   const [reply, setReply] = useState(review.reply ?? "");
   const [saved, setSaved] = useState(review.reply);
@@ -998,7 +1046,7 @@ function ReviewReply({
           {review.author}
           <span className="font-normal text-muted-foreground">
             {" "}
-            · {new Date(review.createdAt).toLocaleDateString("sr-Latn-ME")}
+            · {format.dateTime(new Date(review.createdAt), dateFormat)}
           </span>
           {review.hidden && (
             <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
@@ -1098,7 +1146,13 @@ function CopyField({ value, label }: { value: string; label: string }) {
       <button
         type="button"
         onClick={async () => {
-          await navigator.clipboard.writeText(value);
+          try {
+            await navigator.clipboard.writeText(value);
+          } catch {
+            // Clipboard blocked (permissions, insecure context): the field is
+            // still selectable for a manual copy.
+            return;
+          }
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
         }}
@@ -1193,11 +1247,12 @@ function InquiryCard({
 }) {
   const t = useTranslations("PanelInquiries");
   const ti = useTranslations("Inquiry");
+  const format = useFormatter();
   const [contact, setContact] = useState<{
     phone: string;
     name: string | null;
   } | null>(null);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<"limit" | "generic" | null>(null);
   const [pending, startTransition] = useTransition();
   const digits = contact?.phone.replace(/[^\d+]/g, "") ?? "";
 
@@ -1218,7 +1273,7 @@ function InquiryCard({
           </span>
         )}
         <span className="text-muted-foreground">
-          {new Date(inquiry.createdAt).toLocaleDateString("sr-Latn-ME")}
+          {format.dateTime(new Date(inquiry.createdAt), dateFormat)}
           {inquiry.when &&
             ` · ${ti(`whenOptions.${inquiry.when}` as "whenOptions.asap")}`}
         </span>
@@ -1261,7 +1316,8 @@ function InquiryCard({
             onClick={() =>
               startTransition(async () => {
                 const res = await revealInquiry(inquiry.id, businessId);
-                if (!res.ok) return setError(true);
+                if (!res.ok)
+                  return setError(res.error === "limit" ? "limit" : "generic");
                 setContact({ phone: res.phone, name: res.name });
               })
             }
@@ -1277,7 +1333,7 @@ function InquiryCard({
           )}
           {error && (
             <span role="alert" className="text-sm text-destructive">
-              {ti("errors.generic")}
+              {error === "limit" ? t("revealLimit") : ti("errors.generic")}
             </span>
           )}
         </div>

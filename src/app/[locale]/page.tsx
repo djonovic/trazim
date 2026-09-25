@@ -34,6 +34,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
     namespace: "Metadata",
   });
   return pageMetadata({
+    image: false,
     locale: locale as Locale,
     paths: localePaths("/"),
     title: t("title"),
@@ -269,12 +270,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
         <Section title={t("popularSearches")}>
           <Tabs defaultValue={popularCities[0]?.slug}>
-            <TabsList className="h-auto flex-wrap justify-start bg-transparent p-0">
+            <TabsList className="w-full flex-wrap justify-start gap-2 bg-transparent p-0 group-data-horizontal/tabs:h-auto">
               {popularCities.map((c) => (
                 <TabsTrigger
                   key={c.id}
                   value={c.slug}
-                  className="h-9 rounded-full border px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  className="h-9 flex-none rounded-full border px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
                   {tr(c, "name", locale)}
                 </TabsTrigger>

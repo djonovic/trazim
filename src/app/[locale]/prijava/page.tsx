@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ConfirmLink } from "@/components/auth/confirm-link";
 import { LoginForm } from "@/components/auth/login-form";
+import { SetAlternates } from "@/components/layout/alternates";
 import type { Locale } from "@/i18n/routing";
 import { safeNext } from "@/lib/auth/redirect";
 import { getUser } from "@/lib/auth/session";
+import { localePaths } from "@/lib/seo/metadata";
 
 export async function generateMetadata({
   params,
@@ -39,6 +41,12 @@ export default async function LoginPage({
 
   return (
     <main className="mx-auto max-w-md space-y-6 px-4 py-12">
+      <SetAlternates
+        paths={localePaths({
+          pathname: "/prijava",
+          query: typeof query.next === "string" ? { next: query.next } : {},
+        })}
+      />
       <header className="space-y-2 text-center">
         <h1 className="text-3xl font-extrabold tracking-tight">
           {tokenHash ? t("confirmTitle") : t("title")}

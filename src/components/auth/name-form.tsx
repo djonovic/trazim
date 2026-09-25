@@ -9,6 +9,7 @@ export function NameForm({ initial }: { initial: string }) {
   const t = useTranslations("Account");
   const [name, setName] = useState(initial);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(false);
   const [pending, startTransition] = useTransition();
 
   return (
@@ -19,6 +20,7 @@ export function NameForm({ initial }: { initial: string }) {
         startTransition(async () => {
           const res = await updateName(name);
           setSaved(res.ok);
+          setError(!res.ok);
         });
       }}
     >
@@ -29,6 +31,7 @@ export function NameForm({ initial }: { initial: string }) {
           onChange={(e) => {
             setName(e.target.value);
             setSaved(false);
+            setError(false);
           }}
           placeholder={t("namePlaceholder")}
           autoComplete="name"
@@ -39,6 +42,11 @@ export function NameForm({ initial }: { initial: string }) {
         />
       </label>
       <p className="text-sm text-muted-foreground">{t("nameHint")}</p>
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {t("saveError")}
+        </p>
+      )}
       <button
         type="submit"
         disabled={pending}
