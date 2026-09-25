@@ -42,7 +42,7 @@ export function MobileBannerBar({
               sessionStorage.setItem(KEY, bannerId);
             } catch {}
           }}
-          className="absolute -top-2 -right-1 rounded-full bg-foreground p-1.5 text-background shadow"
+          className="absolute -top-2 right-0 rounded-full bg-foreground p-1.5 text-background shadow"
         >
           <X className="size-3.5" />
         </button>

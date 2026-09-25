@@ -57,7 +57,7 @@ function Booked({
         rel="sponsored noopener"
         data-nosnippet
         style={style}
-        className="flex items-center gap-3 rounded-2xl p-3 pr-4 text-white shadow-xl"
+        className="flex items-start gap-3 rounded-2xl p-3.5 text-white shadow-xl"
       >
         {banner.logoUrl && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -67,17 +67,22 @@ function Booked({
             className="size-11 shrink-0 rounded-xl bg-white object-contain p-1.5"
           />
         )}
+        {/* Full title (up to two lines) with the button under it: on a phone
+            a button beside the title leaves room for only a few words. */}
         <span className="min-w-0 flex-1">
-          <span className="block text-[10px] font-semibold tracking-wide uppercase opacity-80">
+          <span className="block truncate text-[10px] font-semibold tracking-wide uppercase opacity-80">
             {label} · {banner.advertiser}
           </span>
-          <span className="block truncate font-bold">{banner.title}</span>
-        </span>
-        <span
-          className="shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-bold"
-          style={{ color: banner.color }}
-        >
-          {banner.cta || cta}
+          <span className="mt-0.5 line-clamp-2 block text-[15px] leading-snug font-bold">
+            {banner.title}
+          </span>
+          <span
+            className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-sm font-bold"
+            style={{ color: banner.color }}
+          >
+            {banner.cta || cta}
+            <ArrowRight className="size-3.5" aria-hidden />
+          </span>
         </span>
       </a>
     );
@@ -167,7 +172,7 @@ export async function BannerSlot({
           {card}
         </MobileBannerBar>
         {/* Room so the strip doesn't cover the end of the page. */}
-        <div className="h-20 lg:hidden" aria-hidden />
+        <div className="h-32 lg:hidden" aria-hidden />
       </>
     ) : (
       card
