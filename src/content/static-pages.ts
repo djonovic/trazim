@@ -997,7 +997,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
         {
           h: "Obrađivači",
           p: [
-            "Podatke čuvamo kod Supabase (baza i prijava, EU) i Vercel (hosting). Ne prodajemo lične podatke.",
+            "Podatke čuvamo kod Supabase (baza i prijava, EU) i Vercel (hosting i zbirna analitika posjeta, bez kolačića). Ne prodajemo lične podatke.",
           ],
         },
         {
@@ -1038,7 +1038,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
         {
           h: "Processors",
           p: [
-            "Data is stored with Supabase (database and sign-in, EU) and Vercel (hosting). We don't sell personal data.",
+            "Data is stored with Supabase (database and sign-in, EU) and Vercel (hosting and aggregate, cookie-free visit analytics). We don't sell personal data.",
           ],
         },
         {
@@ -1079,7 +1079,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
         {
           h: "Обработчики",
           p: [
-            "Данные хранятся у Supabase (база данных и вход, ЕС) и Vercel (хостинг). Мы не продаём персональные данные.",
+            "Данные хранятся у Supabase (база данных и вход, ЕС) и Vercel (хостинг и суммарная аналитика посещений без cookie). Мы не продаём персональные данные.",
           ],
         },
         {
@@ -1112,7 +1112,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
         {
           h: "Analitika",
           p: [
-            "Koristimo analitiku bez kolačića koja broji posjete zbirno i ne prati pojedince. Ako kasnije uvedemo kolačiće za analitiku ili oglase, tražićemo tvoju saglasnost.",
+            "Vercel Web Analytics broji posjete zbirno, bez kolačića i bez praćenja pojedinaca. Ako kasnije uvedemo kolačiće za analitiku ili oglase, tražićemo tvoju saglasnost.",
           ],
         },
       ],
@@ -1136,7 +1136,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
         {
           h: "Analytics",
           p: [
-            "We use cookie-free analytics that count visits in aggregate and don't track individuals. If we ever add analytics or advertising cookies, we'll ask for your consent first.",
+            "Vercel Web Analytics counts visits in aggregate, without cookies and without tracking individuals. If we ever add analytics or advertising cookies, we'll ask for your consent first.",
           ],
         },
       ],
@@ -1160,7 +1160,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
         {
           h: "Аналитика",
           p: [
-            "Мы используем аналитику без cookie, которая считает посещения суммарно и не отслеживает отдельных людей. Если в будущем появятся cookie для аналитики или рекламы, мы сначала спросим ваше согласие.",
+            "Vercel Web Analytics считает посещения суммарно, без cookie и без отслеживания отдельных людей. Если в будущем появятся cookie для аналитики или рекламы, мы сначала спросим ваше согласие.",
           ],
         },
       ],

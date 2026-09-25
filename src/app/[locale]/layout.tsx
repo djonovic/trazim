@@ -3,6 +3,7 @@ import { Manrope } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { AlternatesProvider } from "@/components/layout/alternates";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -83,6 +84,7 @@ export default async function LocaleLayout({
             </AuthProvider>
           </AlternatesProvider>
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   );
