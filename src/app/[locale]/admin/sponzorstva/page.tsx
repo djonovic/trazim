@@ -2,6 +2,10 @@ import { setRequestLocale } from "next-intl/server";
 import { setSponsorshipStatus } from "@/app/actions/admin";
 import { ActionButton } from "@/components/admin/action-button";
 import { SponsorshipForm } from "@/components/admin/sponsorship-form";
+import {
+  SponsorshipOrder,
+  type OrderItem,
+} from "@/components/admin/sponsorship-order";
 import { Badge, formatDate, SCOPES } from "@/components/admin/ui";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
@@ -27,6 +31,44 @@ export default async function AdminSponsorships({
   const byName = (a: { name: string }, b: { name: string }) =>
     a.name.localeCompare(b.name, "sr");
 
+  // Running or upcoming sponsorships per placement, in the order the site
+  // shows them (see listSponsored): position first, then oldest first.
+  const groups = new Map<string, { title: string; rows: typeof rows }>();
+  for (const s of rows) {
+    if (s.status !== "active" || s.ends_at < now || !s.business) continue;
+    const key = `${s.scope}:${s.service_id ?? ""}:${s.city_id ?? ""}`;
+    const title = [
+      SCOPES[s.scope],
+      s.service_id && serviceNames[s.service_id],
+      s.city_id && cityNames[s.city_id],
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    const group = groups.get(key) ?? { title, rows: [] };
+    group.rows.push(s);
+    groups.set(key, group);
+  }
+  const orderable = [...groups.entries()]
+    .filter(([, g]) => g.rows.length > 1)
+    .map(([key, g]) => ({
+      key,
+      title: g.title,
+      items: g.rows
+        .sort(
+          (a, b) =>
+            (a.position ?? Infinity) - (b.position ?? Infinity) ||
+            a.starts_at.localeCompare(b.starts_at),
+        )
+        .map((s): OrderItem => ({
+          id: s.id,
+          name: s.business!.name,
+          detail:
+            s.starts_at <= now
+              ? `Aktivno do ${formatDate(s.ends_at)}`
+              : `Počinje ${formatDate(s.starts_at)}`,
+        })),
+    }));
+
   return (
     <div className="space-y-6">
       <header>
@@ -36,6 +78,26 @@ export default async function AdminSponsorships({
           na vrhu liste.
         </p>
       </header>
+      {orderable.length > 0 && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-xl font-bold">Redoslijed</h2>
+            <p className="text-sm text-muted-foreground">
+              Ovim redom se sponzori prikazuju na svakoj poziciji. Novo
+              sponzorstvo ide na kraj dok ga ne pomjeriš.
+            </p>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {orderable.map((g) => (
+              <SponsorshipOrder
+                key={`${g.key}:${g.items.map((i) => i.id).join(",")}`}
+                title={g.title}
+                items={g.items}
+              />
+            ))}
+          </div>
+        </section>
+      )}
       <SponsorshipForm
         services={services
           .map((s) => ({ id: s.id, name: s.name_me }))

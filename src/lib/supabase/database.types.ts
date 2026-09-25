@@ -1187,6 +1187,7 @@ export type Database = {
           ends_at: string;
           id: string;
           payment_ref: string | null;
+          position: number | null;
           scope: Database["public"]["Enums"]["sponsorship_scope"];
           service_id: number | null;
           starts_at: string;
@@ -1199,6 +1200,7 @@ export type Database = {
           ends_at: string;
           id?: string;
           payment_ref?: string | null;
+          position?: number | null;
           scope: Database["public"]["Enums"]["sponsorship_scope"];
           service_id?: number | null;
           starts_at?: string;
@@ -1211,6 +1213,7 @@ export type Database = {
           ends_at?: string;
           id?: string;
           payment_ref?: string | null;
+          position?: number | null;
           scope?: Database["public"]["Enums"]["sponsorship_scope"];
           service_id?: number | null;
           starts_at?: string;
@@ -1434,6 +1437,7 @@ export type Database = {
         Args: { p_key: string; p_max: number; p_window_seconds: number };
         Returns: boolean;
       };
+      reorder_sponsorships: { Args: { p_ids: string[] }; Returns: undefined };
       refresh_price_stats: { Args: never; Returns: undefined };
       reveal_business_contact: {
         Args: {

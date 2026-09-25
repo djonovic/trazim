@@ -200,7 +200,7 @@ export const listSponsored = unstable_cache(
   async (opts: { serviceId?: number; cityId?: number; limit?: number }) => {
     const { data, error } = await publicDb
       .from("sponsorships")
-      .select("business_id, scope, service_id, city_id, starts_at")
+      .select("business_id, scope, service_id, city_id, starts_at, position")
       .eq("status", "active")
       .lte("starts_at", new Date().toISOString())
       .gte("ends_at", new Date().toISOString());
@@ -234,8 +234,12 @@ export const listSponsored = unstable_cache(
     const matches = data
       .map((s) => ({ ...s, rank: rank(s) }))
       .filter((s) => s.rank != null)
+      // Within a placement: the admin's order, then unordered ones oldest first.
       .sort(
-        (a, b) => a.rank! - b.rank! || a.starts_at.localeCompare(b.starts_at),
+        (a, b) =>
+          a.rank! - b.rank! ||
+          (a.position ?? Infinity) - (b.position ?? Infinity) ||
+          a.starts_at.localeCompare(b.starts_at),
       );
     const ids = [...new Set(matches.map((s) => s.business_id))].slice(
       0,
@@ -253,7 +257,7 @@ export const listSponsored = unstable_cache(
       .sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
       .map((r) => toCard(r, opts.serviceId));
   },
-  ["list-sponsored-v2"],
+  ["list-sponsored-v3"],
   { tags: ["businesses", "sponsorships"], revalidate: HOUR },
 );
 

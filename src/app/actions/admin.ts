@@ -349,6 +349,28 @@ export async function setSponsorshipStatus(
   return { ok: true };
 }
 
+/** New order of the sponsored businesses in one placement (first = top). */
+export async function reorderSponsorships(ids: string[]): Promise<AdminResult> {
+  const parsed = z.array(z.uuid()).min(1).max(50).safeParse(ids);
+  if (!parsed.success) return fail("invalid");
+  const admin = await adminSession();
+  if (!admin) return fail("auth");
+
+  const { error } = await admin.supabase.rpc("reorder_sponsorships", {
+    p_ids: parsed.data,
+  });
+  if (error) {
+    console.error("reorderSponsorships failed", error.message);
+    return fail("generic");
+  }
+  await admin.log({
+    action: "sponsorship.reorder",
+    sponsorship_id: parsed.data[0],
+  });
+  refreshPublic();
+  return { ok: true };
+}
+
 /** Business picker for the sponsorship form. */
 export async function searchBusinessesForAdmin(q: string) {
   const admin = await adminSession();

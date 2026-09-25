@@ -1199,5 +1199,43 @@ for (let i = 0; i < 2; i++)
   );
 check("rate limit allows then blocks", hits[0] === true && hits[1] === false);
 
+// --- Sponsorship order ------------------------------------------------------------
+const [homeA, homeB, serviceOne] = (
+  await db.query(
+    `insert into sponsorships (business_id, scope, service_id, ends_at) values
+       ($1, 'home', null, now() + interval '30 days'),
+       ($1, 'home', null, now() + interval '30 days'),
+       ($1, 'service', $2, now() + interval '30 days')
+     returning id`,
+    [biz, plumber],
+  )
+).rows.map((r) => r.id);
+await as("authenticated", admin, () =>
+  db.query(`select reorder_sponsorships($1)`, [[homeB, homeA]]),
+);
+const order = (
+  await db.query(
+    `select id, position from sponsorships where id = any($1) order by position`,
+    [[homeA, homeB]],
+  )
+).rows.map((r) => r.id);
+check("admin reorders a placement", order[0] === homeB && order[1] === homeA);
+check(
+  "can't reorder across placements",
+  await fails(
+    as("authenticated", admin, () =>
+      db.query(`select reorder_sponsorships($1)`, [[homeA, serviceOne]]),
+    ),
+  ),
+);
+check(
+  "non-admin can't reorder",
+  await fails(
+    as("authenticated", owner, () =>
+      db.query(`select reorder_sponsorships($1)`, [[homeA, homeB]]),
+    ),
+  ),
+);
+
 console.log(failures ? `\n${failures} FAILED` : "\nAll checks passed");
 process.exit(failures ? 1 : 0);
