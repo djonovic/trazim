@@ -74,6 +74,7 @@ export async function generateMetadata({
   const tu = await getTranslations({ locale, namespace: "Units" });
   const name = tr(service, "name", locale);
   return pageMetadata({
+    image: false,
     locale,
     paths: localePaths(priceHref(service, city)),
     title: t("priceTitle", {

@@ -47,15 +47,44 @@ const phone = z.string().transform((v, ctx) => {
   return n ?? "";
 });
 
-const optionalPhone = z
-  .string()
-  .optional()
-  .transform((v, ctx) => {
-    if (!v?.trim()) return null;
-    const n = normalizePhone(v);
-    if (!n) ctx.addIssue({ code: "custom", message: "phone" });
-    return n;
-  });
+/**
+ * Viber / WhatsApp: the business may not use the app, may use it on the main
+ * phone, or on a different number.
+ */
+export type MessengerMode = "none" | "same" | "other";
+
+const messenger = (field: "viber" | "whatsapp") =>
+  z
+    .object({
+      mode: z.enum(["none", "same", "other"]),
+      number: z.string().max(40).optional(),
+    })
+    .transform((v, ctx) => {
+      if (v.mode !== "other") return { mode: v.mode, number: null };
+      const n = v.number?.trim() ? normalizePhone(v.number) : null;
+      if (!n) ctx.addIssue({ code: "custom", message: field });
+      return { mode: v.mode, number: n };
+    });
+
+export type MessengerInput = z.input<ReturnType<typeof messenger>>;
+
+/** The number to store: null means the business doesn't use that app. */
+export function messengerNumber(
+  m: z.output<ReturnType<typeof messenger>>,
+  phone: string,
+) {
+  return m.mode === "none" ? null : m.mode === "same" ? phone : m.number;
+}
+
+/** Inverse of messengerNumber, for filling the form from the stored row. */
+export function messengerFromStored(
+  value: string | null,
+  phone: string | null,
+): { mode: MessengerMode; number: string } {
+  if (!value) return { mode: "none", number: "" };
+  if (value === phone) return { mode: "same", number: "" };
+  return { mode: "other", number: value };
+}
 
 const optionalEmail = z
   .string()
@@ -78,8 +107,8 @@ export const newBusinessSchema = z.object({
     .optional()
     .transform((v) => v || null),
   phone,
-  viberSame: z.boolean(),
-  whatsappSame: z.boolean(),
+  viber: messenger("viber"),
+  whatsapp: messenger("whatsapp"),
   email: optionalEmail,
   webLink: z.string().trim().max(200).optional(),
 });
@@ -95,8 +124,8 @@ export const profileSchema = z.object({
     .optional()
     .transform((v) => v || null),
   phone,
-  viber: optionalPhone,
-  whatsapp: optionalPhone,
+  viber: messenger("viber"),
+  whatsapp: messenger("whatsapp"),
   email: optionalEmail,
   website: z
     .string()

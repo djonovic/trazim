@@ -91,8 +91,17 @@ export function SearchProvider({
   );
 }
 
+/**
+ * Results are tagged with the step and query they answer: results from the
+ * other step are never shown, and while a newer query is still loading the
+ * previous ones stay visible but are marked stale so Enter can't pick them.
+ */
 function useRemoteSearch(kind: Step, query: string, locale: Locale) {
-  const [results, setResults] = useState<SearchOption[] | null>(null);
+  const [state, setState] = useState<{
+    kind: Step;
+    query: string;
+    items: SearchOption[];
+  } | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
@@ -107,21 +116,28 @@ function useRemoteSearch(kind: Step, query: string, locale: Locale) {
           max_results: 8,
         });
         if (!cancelled)
-          setResults(
-            (data ?? []).map((s) => ({
+          setState({
+            kind,
+            query: q,
+            items: (data ?? []).map((s) => ({
               slug: s[`slug_${key}`],
               name: s[`name_${key}`],
             })),
-          );
+          });
       } else {
         const { data } = await supabase.rpc("search_cities", {
           q,
           max_results: 8,
         });
         if (!cancelled)
-          setResults(
-            (data ?? []).map((c) => ({ slug: c.slug, name: c[`name_${key}`] })),
-          );
+          setState({
+            kind,
+            query: q,
+            items: (data ?? []).map((c) => ({
+              slug: c.slug,
+              name: c[`name_${key}`],
+            })),
+          });
       }
     }, 150);
     return () => {
@@ -130,7 +146,10 @@ function useRemoteSearch(kind: Step, query: string, locale: Locale) {
     };
   }, [kind, query, locale, supabase]);
 
-  return query.trim().length < 2 ? null : results;
+  const q = query.trim();
+  if (q.length < 2 || !state || state.kind !== kind)
+    return { results: null, fresh: q.length < 2 };
+  return { results: state.items, fresh: state.query === q };
 }
 
 function SearchFlow({
@@ -145,13 +164,14 @@ function SearchFlow({
   onDone: () => void;
 }) {
   const t = useTranslations("Search");
+  const tc = useTranslations("Common");
   const locale = useLocale();
   const router = useRouter();
   const [step, setStep] = useState<Step>(initialService ? "city" : "service");
   const [service, setService] = useState<SearchOption | null>(initialService);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const results = useRemoteSearch(step, query, locale);
+  const { results, fresh } = useRemoteSearch(step, query, locale);
 
   const remembered = useMemo(
     () => (step === "city" ? readRememberedCity() : null),
@@ -225,7 +245,7 @@ function SearchFlow({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && options[0]) pick(options[0]);
+              if (e.key === "Enter" && fresh && options[0]) pick(options[0]);
             }}
             placeholder={
               step === "service"
@@ -241,7 +261,7 @@ function SearchFlow({
           type="button"
           onClick={onDone}
           className="rounded-lg p-2 hover:bg-muted"
-          aria-label="Close"
+          aria-label={tc("close")}
         >
           <X className="size-5" />
         </button>
@@ -253,7 +273,7 @@ function SearchFlow({
             {step === "service" ? t("popularServices") : t("popularCities")}
           </p>
         )}
-        {results && results.length === 0 && (
+        {results && fresh && results.length === 0 && (
           <p className="px-3 py-6 text-center text-sm text-muted-foreground">
             {t("noResults", { query })}
           </p>

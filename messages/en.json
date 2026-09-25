@@ -195,7 +195,9 @@
     "otherCities": "{service} in other towns",
     "memberSince": "On Tražim since {date}",
     "customerPhoto": "Photo by {name}",
-    "customerPhotos": "Customer photos"
+    "customerPhotos": "Customer photos",
+    "contactLimit": "Too many contact requests. Try again in an hour.",
+    "contactError": "Contact isn't available. Try again."
   },
   "Units": {
     "hour": "per hour",
@@ -337,7 +339,8 @@
     "noBusinesses": "You don't have a business on Tražim.",
     "addBusiness": "Add a business",
     "reviews": "My reviews",
-    "noReviews": "You haven't written any reviews yet."
+    "noReviews": "You haven't written any reviews yet.",
+    "saveError": "We couldn't save your name. Please try again."
   },
   "Wizard": {
     "title": "List your business",
@@ -362,8 +365,12 @@
     "phone": "Phone number",
     "phonePlaceholder": "+382 67 123 456",
     "phoneHint": "We only show your number on click, to protect it from spam.",
-    "viberSame": "I use the same number for Viber",
-    "whatsappSame": "I use the same number for WhatsApp",
+    "messenger": {
+      "same": "Same as phone",
+      "other": "Different number",
+      "none": "Don't use it",
+      "number": "{app} number"
+    },
     "email": "Email (optional)",
     "website": "Website or Instagram (optional)",
     "photos": "Photos (up to 10)",
@@ -380,10 +387,16 @@
       "name": "Enter a name (2–80 characters).",
       "phone": "Enter a valid phone number.",
       "email": "Enter a valid email.",
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "viber": "Enter a valid Viber number or choose “Don't use it”.",
+      "whatsapp": "Enter a valid WhatsApp number or choose “Don't use it”.",
+      "photosFailed": "{failed} of {total} photos couldn't be uploaded. Try JPG or PNG.",
+      "tooMany": "One account can have up to 5 businesses. Contact us for more.",
+      "blocked": "This account can't add new businesses. Please contact us."
     },
     "loginFirst": "Sign in to publish your profile",
-    "loginFirstText": "We need an account so only you can edit your business."
+    "loginFirstText": "We need an account so only you can edit your business.",
+    "removeService": "Remove {name}"
   },
   "Panel": {
     "title": "My businesses",
@@ -415,8 +428,6 @@
     "saved": "Saved",
     "address": "Address (optional)",
     "addressHint": "Street and number, if customers come to you.",
-    "viber": "Viber (if a different number)",
-    "whatsapp": "WhatsApp (if a different number)",
     "website": "Website",
     "instagram": "Instagram",
     "languages": "Languages you speak",
@@ -488,7 +499,8 @@
       "limit": "Too many reviews today. Try again tomorrow.",
       "name": "Enter your name (at least 2 letters).",
       "generic": "Something went wrong. Please try again.",
-      "photos": "Up to 4 photos per review."
+      "photos": "Up to 4 photos per review.",
+      "photosFailed": "Your review is saved, but {failed} of {total} photos couldn't be uploaded. Try JPG or PNG."
     },
     "photosLabel": "Photos (optional, up to 4)",
     "addPhotos": "Add photos",
@@ -641,7 +653,8 @@
       "city": "Choose a town.",
       "limit": "Too many requests today. Try again tomorrow.",
       "generic": "Something went wrong. Please try again."
-    }
+    },
+    "closeError": "We couldn't close the request. Please try again."
   },
   "PanelInquiries": {
     "tab": "Requests",
@@ -651,7 +664,8 @@
     "urgent": "Urgent",
     "reveal": "Show contact",
     "call": "Call",
-    "contacted": "Contact opened"
+    "contacted": "Contact opened",
+    "revealLimit": "You've reached today's limit for opening contacts. Try again tomorrow."
   },
   "Banner": {
     "label": "Ad",

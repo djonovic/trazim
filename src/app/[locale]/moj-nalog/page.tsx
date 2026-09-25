@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { NameForm } from "@/components/auth/name-form";
+import { SetAlternates } from "@/components/layout/alternates";
 import { Stars } from "@/components/business/review-list";
 import { CloseInquiryButton } from "@/components/inquiries/close-inquiry-button";
 import { Link, getPathname } from "@/i18n/navigation";
@@ -8,6 +9,7 @@ import type { Locale } from "@/i18n/routing";
 import { requireUser } from "@/lib/auth/session";
 import { tr } from "@/lib/i18n-fields";
 import { getTaxonomy } from "@/lib/queries/taxonomy";
+import { localePaths } from "@/lib/seo/metadata";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({
@@ -70,6 +72,7 @@ export default async function AccountPage({
 
   return (
     <main className="mx-auto max-w-xl space-y-10 px-4 py-10">
+      <SetAlternates paths={localePaths("/moj-nalog")} />
       <h1 className="text-3xl font-extrabold tracking-tight">{t("title")}</h1>
       <section className="space-y-4 rounded-2xl border bg-white p-6">
         <div>

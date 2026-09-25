@@ -41,11 +41,32 @@ export function pageMetadata(opts: {
   noindex?: boolean;
   /** Skip the " | Tražim" template (home page). */
   absoluteTitle?: boolean;
+  /**
+   * Share image path for routes without an opengraph-image file of their own
+   * (default: the site image). `false` when the route has one: an explicit
+   * image here would override it.
+   */
+  image?: string | false;
 }): Metadata {
   const languages: Record<string, string> = {};
   for (const locale of routing.locales)
     languages[hreflang[locale]] = absoluteUrl(opts.paths[locale]);
   languages["x-default"] = absoluteUrl(opts.paths[routing.defaultLocale]);
+
+  // Without this, static pages and listing page 2+ would have no image at
+  // all: a child's openGraph replaces the layout's whole object.
+  const images =
+    opts.image === false
+      ? undefined
+      : [
+          {
+            url: absoluteUrl(opts.image ?? `/${opts.locale}/opengraph-image`),
+            width: 1200,
+            height: 630,
+            alt: "Tražim",
+            type: "image/png",
+          },
+        ];
 
   return {
     title: opts.absoluteTitle ? { absolute: opts.title } : opts.title,
@@ -62,8 +83,10 @@ export function pageMetadata(opts: {
       alternateLocale: routing.locales
         .filter((l) => l !== opts.locale)
         .map((l) => ogLocale[l]),
+      // Leave the key out entirely when the route has its own image file:
+      // even `images: undefined` would drop the file-based image.
+      ...(images && { images }),
     },
-    // Images come from the opengraph-image files of each route.
-    twitter: { card: "summary_large_image" },
+    twitter: { card: "summary_large_image", ...(images && { images }) },
   };
 }

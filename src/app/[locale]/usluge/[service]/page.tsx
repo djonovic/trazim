@@ -62,6 +62,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "Metadata" });
   const name = tr(service, "name", locale);
   return pageMetadata({
+    image: false,
     locale,
     paths: localePaths(hrefFor(service)),
     title: t("serviceTitle", { service: name, count: businesses.length }),

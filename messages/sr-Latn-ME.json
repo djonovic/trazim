@@ -195,7 +195,9 @@
     "otherCities": "{service} u drugim gradovima",
     "memberSince": "Na Tražim od {date}",
     "customerPhoto": "Fotografija od {name}",
-    "customerPhotos": "Fotografije kupaca"
+    "customerPhotos": "Fotografije kupaca",
+    "contactLimit": "Previše otvaranja kontakata. Pokušaj ponovo za sat vremena.",
+    "contactError": "Kontakt nije dostupan. Pokušaj ponovo."
   },
   "Units": {
     "hour": "po satu",
@@ -337,7 +339,8 @@
     "noBusinesses": "Nemaš nijedan biznis na Tražim.",
     "addBusiness": "Dodaj biznis",
     "reviews": "Moje recenzije",
-    "noReviews": "Još nema tvojih recenzija."
+    "noReviews": "Još nema tvojih recenzija.",
+    "saveError": "Ime nije sačuvano. Pokušajte ponovo."
   },
   "Wizard": {
     "title": "Dodaj svoj biznis",
@@ -362,8 +365,12 @@
     "phone": "Broj telefona",
     "phonePlaceholder": "+382 67 123 456",
     "phoneHint": "Broj prikazujemo tek na klik, da ga zaštitimo od spama.",
-    "viberSame": "Isti broj koristim za Viber",
-    "whatsappSame": "Isti broj koristim za WhatsApp",
+    "messenger": {
+      "same": "Isti broj kao telefon",
+      "other": "Drugi broj",
+      "none": "Ne koristim",
+      "number": "Broj za {app}"
+    },
     "email": "Email (opciono)",
     "website": "Sajt ili Instagram (opciono)",
     "photos": "Slike (do 10)",
@@ -380,10 +387,16 @@
       "name": "Unesi naziv (2–80 znakova).",
       "phone": "Unesi ispravan broj telefona.",
       "email": "Unesi ispravan email.",
-      "generic": "Nešto nije u redu. Pokušaj ponovo."
+      "generic": "Nešto nije u redu. Pokušaj ponovo.",
+      "viber": "Unesi ispravan broj za Viber ili izaberi „Ne koristim“.",
+      "whatsapp": "Unesi ispravan broj za WhatsApp ili izaberi „Ne koristim“.",
+      "photosFailed": "Nije uspjelo otpremanje {failed} od {total} fotografija. Probajte JPG ili PNG.",
+      "tooMany": "Jedan nalog može imati najviše 5 biznisa. Za više nam piši na kontakt stranici.",
+      "blocked": "Ovaj nalog ne može dodavati nove biznise. Piši nam na kontakt stranici."
     },
     "loginFirst": "Prijavi se da objaviš profil",
-    "loginFirstText": "Treba nam nalog da bi samo ti mogao da uređuješ svoj biznis."
+    "loginFirstText": "Treba nam nalog da bi samo ti mogao da uređuješ svoj biznis.",
+    "removeService": "Ukloni: {name}"
   },
   "Panel": {
     "title": "Moji biznisi",
@@ -415,8 +428,6 @@
     "saved": "Sačuvano",
     "address": "Adresa (opciono)",
     "addressHint": "Ulica i broj, ako mušterije dolaze kod tebe.",
-    "viber": "Viber (ako je drugi broj)",
-    "whatsapp": "WhatsApp (ako je drugi broj)",
     "website": "Sajt",
     "instagram": "Instagram",
     "languages": "Jezici koje govoriš",
@@ -488,7 +499,8 @@
       "limit": "Previše recenzija za danas. Pokušaj sutra.",
       "name": "Unesi ime (najmanje 2 slova).",
       "generic": "Nešto nije u redu. Pokušaj ponovo.",
-      "photos": "Najviše 4 slike po recenziji."
+      "photos": "Najviše 4 slike po recenziji.",
+      "photosFailed": "Recenzija je sačuvana, ali nije uspjelo otpremanje {failed} od {total} fotografija. Probajte JPG ili PNG."
     },
     "photosLabel": "Fotografije (opciono, do 4)",
     "addPhotos": "Dodaj slike",
@@ -641,7 +653,8 @@
       "city": "Izaberi grad.",
       "limit": "Previše upita za danas. Pokušaj sutra.",
       "generic": "Nešto nije u redu. Pokušaj ponovo."
-    }
+    },
+    "closeError": "Zahtjev nije zatvoren. Pokušajte ponovo."
   },
   "PanelInquiries": {
     "tab": "Upiti",
@@ -651,7 +664,8 @@
     "urgent": "Hitno",
     "reveal": "Prikaži kontakt",
     "call": "Pozovi",
-    "contacted": "Kontakt otvoren"
+    "contacted": "Kontakt otvoren",
+    "revealLimit": "Dostigao si današnji limit otvaranja kontakata. Pokušaj sutra."
   },
   "Banner": {
     "label": "Oglas",

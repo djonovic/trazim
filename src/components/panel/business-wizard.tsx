@@ -12,6 +12,10 @@ import {
 } from "react";
 import { addPhotos, createBusiness } from "@/app/actions/business";
 import { useAuth } from "@/components/auth/auth-provider";
+import {
+  MessengerField,
+  type MessengerValue,
+} from "@/components/panel/messenger-field";
 import { useRouter } from "@/i18n/navigation";
 import { uploadPhotos } from "@/lib/upload-photos";
 import { cn } from "@/lib/utils";
@@ -39,8 +43,8 @@ type Draft = {
   name: string;
   description: string;
   phone: string;
-  viberSame: boolean;
-  whatsappSame: boolean;
+  viber: MessengerValue;
+  whatsapp: MessengerValue;
   email: string;
   webLink: string;
 };
@@ -56,8 +60,8 @@ const emptyDraft: Draft = {
   name: "",
   description: "",
   phone: "",
-  viberSame: true,
-  whatsappSame: true,
+  viber: { mode: "same", number: "" },
+  whatsapp: { mode: "same", number: "" },
   email: "",
   webLink: "",
 };
@@ -68,7 +72,13 @@ const norm = (s: string) =>
 function loadDraft(): Draft {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
-    return raw ? { ...emptyDraft, ...JSON.parse(raw) } : emptyDraft;
+    if (!raw) return emptyDraft;
+    const draft = { ...emptyDraft, ...JSON.parse(raw) } as Draft;
+    // Drafts saved before the Viber/WhatsApp choice had booleans instead.
+    if (typeof draft.viber !== "object") draft.viber = emptyDraft.viber;
+    if (typeof draft.whatsapp !== "object")
+      draft.whatsapp = emptyDraft.whatsapp;
+    return draft;
   } catch {
     return emptyDraft;
   }
@@ -157,6 +167,13 @@ function WizardSteps({ services, cities, regions }: WizardProps) {
     if (draft.step === 1 && !draft.serviceIds.length)
       return setError(t("errors.services"));
     if (draft.step === 2 && !draft.cityId) return setError(t("errors.city"));
+    // Sign in before the photo step: photos live only in memory and would be
+    // lost to the Google redirect or the email link.
+    if (draft.step === 2 && !user)
+      return openLogin({
+        title: t("loginFirst"),
+        description: t("loginFirstText"),
+      });
     update({ step: (draft.step + 1) as Draft["step"] });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -176,14 +193,24 @@ function WizardSteps({ services, cities, regions }: WizardProps) {
         name: draft.name,
         description: draft.description,
         phone: draft.phone,
-        viberSame: draft.viberSame,
-        whatsappSame: draft.whatsappSame,
+        viber: draft.viber,
+        whatsapp: draft.whatsapp,
         email: draft.email,
         webLink: draft.webLink,
       });
       if (!result.ok) {
         const field = result.fields?.[0];
-        const known = ["services", "city", "name", "phone", "email"];
+        const known = [
+          "services",
+          "city",
+          "name",
+          "phone",
+          "viber",
+          "whatsapp",
+          "email",
+          "tooMany",
+          "blocked",
+        ];
         setError(
           field && known.includes(field)
             ? t(`errors.${field}` as "errors.name")
@@ -191,12 +218,16 @@ function WizardSteps({ services, cities, regions }: WizardProps) {
         );
         return;
       }
+      let missingPhotos = 0;
       if (photos.length) {
         setProgress(t("uploading", { done: 0, total: photos.length }));
         const uploaded = await uploadPhotos(result.id, photos, (done, total) =>
           setProgress(t("uploading", { done, total })),
         );
-        if (uploaded.length) await addPhotos(result.id, uploaded);
+        const saved = uploaded.length
+          ? (await addPhotos(result.id, uploaded)).ok
+          : true;
+        missingPhotos = saved ? photos.length - uploaded.length : photos.length;
       }
       try {
         localStorage.removeItem(DRAFT_KEY);
@@ -204,7 +235,13 @@ function WizardSteps({ services, cities, regions }: WizardProps) {
       router.push({
         pathname: "/panel/[id]",
         params: { id: result.id },
-        query: { created: "1" },
+        query: missingPhotos
+          ? {
+              created: "1",
+              photosFailed: String(missingPhotos),
+              photosTotal: String(photos.length),
+            }
+          : { created: "1" },
       });
     });
   }
@@ -419,25 +456,19 @@ function WizardSteps({ services, cities, regions }: WizardProps) {
               {t("phoneHint")}
             </span>
           </label>
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={draft.viberSame}
-                onChange={(e) => update({ viberSame: e.target.checked })}
-                className="size-5"
-              />
-              {t("viberSame")}
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={draft.whatsappSame}
-                onChange={(e) => update({ whatsappSame: e.target.checked })}
-                className="size-5"
-              />
-              {t("whatsappSame")}
-            </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <MessengerField
+              app="viber"
+              value={draft.viber}
+              onChange={(viber) => update({ viber })}
+              inputClassName={field}
+            />
+            <MessengerField
+              app="whatsapp"
+              value={draft.whatsapp}
+              onChange={(whatsapp) => update({ whatsapp })}
+              inputClassName={field}
+            />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block space-y-1.5">

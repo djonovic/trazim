@@ -1,7 +1,7 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import type { Tables } from "@/lib/supabase/database.types";
-import { dbError } from "@/lib/supabase/errors";
+import { dbError, fetchAll } from "@/lib/supabase/errors";
 import { publicDb } from "@/lib/supabase/public";
 
 export type PriceStat = Tables<"price_stats">;
@@ -32,9 +32,17 @@ export function pickPriceStat(stats: PriceStat[], cityId: number) {
 /** Every price stat row (country + cities), for /cijene and /statistika. */
 export const getAllPriceStats = unstable_cache(
   async () => {
-    const { data, error } = await publicDb.from("price_stats").select("*");
-    if (error) throw dbError(error, "getAllPriceStats");
-    return data;
+    return fetchAll(
+      (from, to) =>
+        publicDb
+          .from("price_stats")
+          .select("*")
+          .order("service_id")
+          .order("city_key", { nullsFirst: true })
+          .order("unit")
+          .range(from, to),
+      "getAllPriceStats",
+    );
   },
   ["all-price-stats-v1"],
   { tags: ["prices"], revalidate: 21600 },
@@ -55,17 +63,18 @@ export type PriceRow = {
  */
 export const getPriceTable = unstable_cache(
   async (serviceId: number, cityIds: number[] | null) => {
-    let query = publicDb
-      .from("price_list_items")
-      .select(
-        "name, kind, price_from, price_to, unit, businesses!inner(status, city_id)",
-      )
-      .eq("service_id", serviceId)
-      .in("kind", ["fixed", "from", "range"])
-      .eq("businesses.status", "active");
-    if (cityIds) query = query.in("businesses.city_id", cityIds);
-    const { data, error } = await query;
-    if (error) throw dbError(error, "getPriceTable");
+    const data = await fetchAll((from, to) => {
+      let query = publicDb
+        .from("price_list_items")
+        .select(
+          "id, name, kind, price_from, price_to, unit, businesses!inner(status, city_id)",
+        )
+        .eq("service_id", serviceId)
+        .in("kind", ["fixed", "from", "range"])
+        .eq("businesses.status", "active");
+      if (cityIds) query = query.in("businesses.city_id", cityIds);
+      return query.order("id").range(from, to);
+    }, "getPriceTable");
 
     const groups = new Map<
       string,

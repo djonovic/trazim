@@ -112,6 +112,7 @@ export async function generateMetadata({
       })
     : "";
   const meta = pageMetadata({
+    image: false,
     locale: locale as Locale,
     paths: localePaths({ pathname: "/b/[slug]", params: { slug } }),
     title: `${business.name}, ${tr(city, "name", locale as Locale)}`,

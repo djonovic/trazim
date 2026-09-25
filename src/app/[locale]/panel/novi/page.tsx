@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { SetAlternates } from "@/components/layout/alternates";
 import { BusinessWizard } from "@/components/panel/business-wizard";
 import type { Locale } from "@/i18n/routing";
 import { tr } from "@/lib/i18n-fields";
 import { getTaxonomy } from "@/lib/queries/taxonomy";
+import { localePaths } from "@/lib/seo/metadata";
 
 const norm = (s: string) =>
   s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "dj");
@@ -58,6 +60,7 @@ export default async function NewBusinessPage({
 
   return (
     <main className="mx-auto max-w-2xl space-y-8 px-4 py-8 sm:py-12">
+      <SetAlternates paths={localePaths("/panel/novi")} />
       <header className="space-y-2">
         <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
           {t("title")}

@@ -20,6 +20,7 @@ export async function ConfirmLink({
       <input type="hidden" name="token_hash" value={tokenHash} />
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="next" value={next} />
+      <input type="hidden" name="locale" value={locale} />
       <p className="text-muted-foreground">{t("confirmText")}</p>
       <button
         type="submit"

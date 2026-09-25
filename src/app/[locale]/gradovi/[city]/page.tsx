@@ -55,6 +55,7 @@ export async function generateMetadata({
   const { city, businesses } = await load(slug);
   const t = await getTranslations({ locale, namespace: "Metadata" });
   return pageMetadata({
+    image: false,
     locale,
     paths: localePaths({ pathname: "/gradovi/[city]", params: { city: slug } }),
     title: t("cityTitle", {
