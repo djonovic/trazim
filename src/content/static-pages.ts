@@ -66,7 +66,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
           p: [
             "Tražim je oglasnik: ne izvodimo radove i nismo strana u dogovoru između tebe i biznisa.",
             "Plaćanje je direktno biznisu. Tražim ne naplaćuje ništa korisnicima.",
-            "Oznaka „Provjeren“ znači da smo provjerili registraciju firme i broj telefona. Ne garantujemo kvalitet rada, zato čitaj recenzije i traži ponudu unaprijed.",
+            "Oznaka „Provjeren“ znači da smo provjerili da broj telefona pripada biznisu. Ne garantujemo kvalitet rada, zato čitaj recenzije i traži ponudu unaprijed.",
           ],
         },
       ],
@@ -102,7 +102,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
           p: [
             "Tražim is a directory: we don't carry out the work and we're not a party to your agreement with the business.",
             "You pay the business directly. Tražim is free for customers.",
-            "“Verified” means we checked the company registration and phone number. We can't guarantee the quality of the work, so read reviews and ask for a quote up front.",
+            "“Verified” means we checked that the phone number belongs to the business. We can't guarantee the quality of the work, so read reviews and ask for a quote up front.",
           ],
         },
       ],
@@ -138,7 +138,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
           p: [
             "Tražim — площадка объявлений: мы не выполняем работы и не являемся стороной договора между вами и исполнителем.",
             "Оплата производится напрямую исполнителю. Для клиентов Tražim бесплатен.",
-            "Отметка «Проверен» означает, что мы проверили регистрацию компании и номер телефона. Качество работ мы не гарантируем, поэтому читайте отзывы и уточняйте цену заранее.",
+            "Отметка «Проверен» означает, что мы проверили, что номер телефона принадлежит бизнесу. Качество работ мы не гарантируем, поэтому читайте отзывы и уточняйте цену заранее.",
           ],
         },
       ],
@@ -164,7 +164,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             },
             {
               q: "Šta znači „Provjeren“?",
-              a: "Provjerili smo registraciju firme (PIB/CRPS) i broj telefona. To nije garancija kvaliteta rada.",
+              a: "Provjerili smo da broj telefona pripada biznisu. To nije garancija kvaliteta rada.",
             },
             {
               q: "Šta znači „Na provjeri“?",
@@ -193,7 +193,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             },
             {
               q: "Kako da dobijem oznaku „Provjeren“?",
-              a: `Pošalji nam PIB ili rješenje iz CRPS-a na ${email}. Provjeru radimo besplatno.`,
+              a: `Piši nam na ${email} sa nazivom biznisa. Pozvaćemo broj sa profila da potvrdimo da je tvoj. Provjera je besplatna.`,
             },
           ],
         },
@@ -217,7 +217,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             },
             {
               q: "What does “Verified” mean?",
-              a: "We checked the company registration and phone number. It isn't a guarantee of the quality of the work.",
+              a: "We checked that the phone number belongs to the business. It isn't a guarantee of the quality of the work.",
             },
             {
               q: "What does “Under review” mean?",
@@ -246,7 +246,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             },
             {
               q: "How do I get “Verified”?",
-              a: `Email your company registration to ${email}. Verification is free.`,
+              a: `Email ${email} with your business name. We'll call the number on your profile to confirm it's yours. Verification is free.`,
             },
           ],
         },
@@ -269,7 +269,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             },
             {
               q: "Что значит «Проверен»?",
-              a: "Мы проверили регистрацию компании и номер телефона. Это не гарантия качества работ.",
+              a: "Мы проверили, что номер телефона принадлежит бизнесу. Это не гарантия качества работ.",
             },
             {
               q: "Что значит «На проверке»?",
@@ -298,7 +298,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             },
             {
               q: "Как получить отметку «Проверен»?",
-              a: `Отправьте регистрационные документы компании на ${email}. Проверка бесплатная.`,
+              a: `Напишите на ${email} и укажите название бизнеса. Мы позвоним по номеру из профиля, чтобы подтвердить, что он ваш. Проверка бесплатная.`,
             },
           ],
         },
@@ -554,7 +554,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             "Mušterije te kontaktiraju direktno. Bez provizije i bez plaćanja po upitu.",
             "Recenzije koje grade povjerenje, uz mogućnost javnog odgovora.",
             "Statistika: koliko ljudi je pogledalo profil i kliknulo na kontakt.",
-            "Oznaka „Provjeren“ nakon besplatne provjere registracije.",
+            "Oznaka „Provjeren“ nakon besplatne provjere broja telefona.",
           ],
         },
         {
@@ -586,7 +586,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             "Customers contact you directly. No commission and no pay-per-lead.",
             "Reviews that build trust, with public replies.",
             "Statistics: how many people viewed your profile and tapped to contact you.",
-            "A “Verified” badge after a free registration check.",
+            "A “Verified” badge after a free phone number check.",
           ],
         },
         {
@@ -618,7 +618,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             "Клиенты связываются с вами напрямую. Без комиссий и оплаты за заявки.",
             "Отзывы, которые вызывают доверие, с возможностью публичного ответа.",
             "Статистика: сколько людей посмотрели профиль и нажали на контакт.",
-            "Отметка «Проверен» после бесплатной проверки регистрации.",
+            "Отметка «Проверен» после бесплатной проверки номера телефона.",
           ],
         },
         {
@@ -665,7 +665,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
         {
           h: "Šta znači „Provjeren“",
           p: [
-            "Provjerili smo da je biznis registrovan (PIB u Centralnom registru privrednih subjekata) i da broj telefona pripada njemu. Oznaka ne garantuje kvalitet rada; za to služe recenzije.",
+            "Provjerili smo da broj telefona pripada biznisu. Oznaka ne garantuje kvalitet rada; za to služe recenzije.",
           ],
         },
         {
@@ -723,7 +723,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
         {
           h: "What “Verified” means",
           p: [
-            "We checked that the business is registered (tax ID in the Central Business Register) and that the phone number belongs to it. The label doesn't guarantee the quality of the work; that's what reviews are for.",
+            "We checked that the phone number belongs to the business. The label doesn't guarantee the quality of the work; that's what reviews are for.",
           ],
         },
         {
@@ -781,7 +781,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
         {
           h: "Что значит «Проверен»",
           p: [
-            "Мы проверили, что компания зарегистрирована (ИНН в Центральном реестре хозяйствующих субъектов) и что номер телефона принадлежит ей. Отметка не гарантирует качество работы; для этого есть отзывы.",
+            "Мы проверили, что номер телефона принадлежит бизнесу. Отметка не гарантирует качество работы; для этого есть отзывы.",
           ],
         },
         {

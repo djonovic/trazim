@@ -36,7 +36,7 @@
     "profiles": "{count, plural, one {# profil} few {# profila} other {# profila}}",
     "views": "{count}+ pregleda",
     "verified": "Provjeren",
-    "verifiedHint": "Tražim je provjerio PIB/registraciju i broj telefona.",
+    "verifiedHint": "Tražim je provjerio da broj telefona pripada biznisu.",
     "underReview": "Na provjeri",
     "new": "Novo",
     "online": "Online",
@@ -102,7 +102,7 @@
       },
       {
         "q": "Da li Tražim provjerava biznise?",
-        "a": "Biznisi sa oznakom „Provjeren“ su prošli provjeru registracije (PIB/CRPS) i broja telefona. Ostali profili su vidljivi odmah, a naš tim ih pregleda u roku od 24 sata."
+        "a": "Biznisi sa oznakom „Provjeren“ su prošli provjeru broja telefona. Ostali profili su vidljivi odmah, a naš tim ih pregleda u roku od 24 sata."
       },
       {
         "q": "Kako se plaća usluga?",

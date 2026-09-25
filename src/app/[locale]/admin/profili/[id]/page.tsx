@@ -134,7 +134,7 @@ export default async function AdminBusiness({
             <ActionButton
               action={act("verify")}
               label="Označi kao provjeren"
-              confirm="Da li si provjerio PIB/CRPS i broj telefona?"
+              confirm="Da li si provjerio da broj telefona pripada biznisu?"
             />
           )
         )}

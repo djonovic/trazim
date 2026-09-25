@@ -57,7 +57,7 @@ const BUSINESS_ACTIONS = [
 export type BusinessAction = (typeof BUSINESS_ACTIONS)[number];
 
 /**
- * approve: clears "Na provjeri"; verify: "Provjeren" badge (PIB/CRPS and phone
+ * approve: clears "Na provjeri"; verify: "Provjeren" badge (the phone
  * checked); reject/suspend hide the profile, with a note the owner sees.
  */
 export async function moderateBusiness(

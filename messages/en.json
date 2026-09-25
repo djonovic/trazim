@@ -36,7 +36,7 @@
     "profiles": "{count, plural, one {# profile} other {# profiles}}",
     "views": "{count}+ views",
     "verified": "Verified",
-    "verifiedHint": "Tražim checked the company registration and phone number.",
+    "verifiedHint": "Tražim checked that the phone number belongs to the business.",
     "underReview": "Under review",
     "new": "New",
     "online": "Online",
@@ -102,7 +102,7 @@
       },
       {
         "q": "Does Tražim check businesses?",
-        "a": "Businesses marked “Verified” have had their company registration and phone number checked. Other profiles go live right away and our team reviews them within 24 hours."
+        "a": "Businesses marked “Verified” have had their phone number checked. Other profiles go live right away and our team reviews them within 24 hours."
       },
       {
         "q": "How do I pay for a service?",
