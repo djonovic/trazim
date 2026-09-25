@@ -1,0 +1,22 @@
+import { BRAND, LogoMark, ogImage } from "@/lib/og";
+
+export const size = { width: 180, height: 180 };
+export const contentType = "image/png";
+
+export default function AppleIcon() {
+  return ogImage(
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: BRAND.primary,
+      }}
+    >
+      <LogoMark size={180} />
+    </div>,
+    size,
+  );
+}

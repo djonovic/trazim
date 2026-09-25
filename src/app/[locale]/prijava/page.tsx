@@ -1,0 +1,55 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { LoginForm } from "@/components/auth/login-form";
+import type { Locale } from "@/i18n/routing";
+import { safeNext } from "@/lib/auth/redirect";
+import { getUser } from "@/lib/auth/session";
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/prijava">): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({
+    locale: locale as Locale,
+    namespace: "Auth",
+  });
+  return { title: t("title"), robots: { index: false, follow: false } };
+}
+
+export default async function LoginPage({
+  params,
+  searchParams,
+}: PageProps<"/[locale]/prijava">) {
+  const { locale } = await params;
+  setRequestLocale(locale as Locale);
+  const query = await searchParams;
+  const next = safeNext(
+    typeof query.next === "string" ? query.next : undefined,
+  );
+  if (await getUser()) redirect(next);
+  const t = await getTranslations({
+    locale: locale as Locale,
+    namespace: "Auth",
+  });
+
+  return (
+    <main className="mx-auto max-w-md space-y-6 px-4 py-12">
+      <header className="space-y-2 text-center">
+        <h1 className="text-3xl font-extrabold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
+      </header>
+      {query.error === "callback" && (
+        <p
+          role="alert"
+          className="rounded-xl border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+        >
+          {t("callbackError")}
+        </p>
+      )}
+      <div className="rounded-2xl border bg-white p-6 shadow-sm">
+        <LoginForm next={next} />
+      </div>
+    </main>
+  );
+}
