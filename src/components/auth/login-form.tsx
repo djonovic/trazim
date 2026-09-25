@@ -6,7 +6,7 @@ import { useState } from "react";
 import { callbackUrl } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/client";
 
-type Provider = "google" | "apple";
+type Provider = "google";
 
 function GoogleIcon() {
   return (
@@ -31,15 +31,7 @@ function GoogleIcon() {
   );
 }
 
-function AppleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-5" aria-hidden fill="currentColor">
-      <path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7a4.5 4.5 0 0 0-3.5-1.9c-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.8-3.2-.8a4.7 4.7 0 0 0-4 2.4c-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4a10 10 0 0 0 1.4-2.8 4.2 4.2 0 0 1-2.6-3.8ZM14 5.4a4.2 4.2 0 0 0 1-3.1 4.4 4.4 0 0 0-2.9 1.5 4.1 4.1 0 0 0-1 3 3.7 3.7 0 0 0 2.9-1.4Z" />
-    </svg>
-  );
-}
-
-/** Google, Apple or a magic link. `next` is where the user lands after signing in. */
+/** Google or a magic link. `next` is where the user lands after signing in. */
 export function LoginForm({ next }: { next: string }) {
   const t = useTranslations("Auth");
   const [email, setEmail] = useState("");
@@ -107,17 +99,12 @@ export function LoginForm({ next }: { next: string }) {
     provider: Provider,
     label: string,
     icon: React.ReactNode,
-    dark = false,
   ) => (
     <button
       type="button"
       onClick={() => oauth(provider)}
       disabled={pending != null}
-      className={
-        dark
-          ? "flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-black font-semibold text-white hover:bg-black/85 disabled:opacity-60"
-          : "flex h-12 w-full items-center justify-center gap-3 rounded-xl border bg-white font-semibold hover:bg-muted disabled:opacity-60"
-      }
+      className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border bg-white font-semibold hover:bg-muted disabled:opacity-60"
     >
       {pending === provider ? (
         <Loader2 className="size-5 animate-spin" aria-hidden />
@@ -131,7 +118,6 @@ export function LoginForm({ next }: { next: string }) {
   return (
     <div className="space-y-4">
       {providerButton("google", t("google"), <GoogleIcon />)}
-      {providerButton("apple", t("apple"), <AppleIcon />, true)}
 
       <div className="flex items-center gap-3 text-xs text-muted-foreground uppercase">
         <span className="h-px flex-1 bg-border" />

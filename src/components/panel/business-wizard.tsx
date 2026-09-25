@@ -84,7 +84,7 @@ const subscribe = () => () => {};
 
 /**
  * Rendered only in the browser: the draft lives in localStorage so it
- * survives the Google/Apple redirect and the email link (a new tab).
+ * survives the Google redirect and the email link (a new tab).
  */
 export function BusinessWizard(props: WizardProps) {
   const hydrated = useSyncExternalStore(

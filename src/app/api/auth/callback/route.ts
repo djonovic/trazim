@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { safeNext } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/server";
 
-/** OAuth (Google, Apple) and magic-link landing: exchanges the PKCE code for a session cookie. */
+/** OAuth (Google) and magic-link landing: exchanges the PKCE code for a session cookie. */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const next = safeNext(searchParams.get("next"));

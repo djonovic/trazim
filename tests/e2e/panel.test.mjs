@@ -74,11 +74,9 @@ try {
     page.url(),
   );
   check(
-    "login page shows Google and Apple",
-    await page.evaluate(
-      () =>
-        document.body.innerText.includes("Nastavi sa Google") &&
-        document.body.innerText.includes("Nastavi sa Apple"),
+    "login page shows Google",
+    await page.evaluate(() =>
+      document.body.innerText.includes("Nastavi sa Google"),
     ),
   );
   await page.screenshot({ path: `${SHOTS}e2e-login.png` });
