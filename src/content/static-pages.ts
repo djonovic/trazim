@@ -185,7 +185,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             },
             {
               q: "Kako da se pojavim na vrhu liste?",
-              a: "Redosljed zavisi od ocjena, broja recenzija, provjere i aktivnosti. Sponzorisane pozicije su jasno označene i biće dostupne uskoro.",
+              a: "Redosljed zavisi od ocjena, broja recenzija, provjere i aktivnosti. Sponzorisane pozicije su uvijek jasno označene i odvojene od ostalih rezultata.",
             },
             {
               q: "Mogu li da obrišem lošu recenziju?",
@@ -238,7 +238,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             },
             {
               q: "How do I get to the top of the list?",
-              a: "The order depends on ratings, number of reviews, verification and activity. Sponsored placements are clearly labelled and coming soon.",
+              a: "The order depends on ratings, number of reviews, verification and activity. Sponsored placements are always clearly labelled and kept apart from the other results.",
             },
             {
               q: "Can I delete a bad review?",
@@ -290,7 +290,7 @@ export const staticPages: Record<StaticSlug, Record<Locale, PageContent>> = {
             },
             {
               q: "Как попасть в начало списка?",
-              a: "Порядок зависит от оценок, количества отзывов, проверки и активности. Рекламные места чётко помечены и скоро станут доступны.",
+              a: "Порядок зависит от оценок, количества отзывов, проверки и активности. Рекламные места всегда чётко помечены и отделены от остальных результатов.",
             },
             {
               q: "Можно ли удалить плохой отзыв?",

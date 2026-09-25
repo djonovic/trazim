@@ -64,3 +64,18 @@ export async function uploadPhotos(
   }
   return uploaded;
 }
+
+/**
+ * Removes files uploaded by uploadPhotos() when saving their rows failed, so
+ * they don't sit unused in storage. Best effort: a failure here is ignored.
+ */
+export async function discardUploads(
+  uploaded: { path: string }[],
+  bucket: "business-photos" | "review-photos" = "business-photos",
+) {
+  if (!uploaded.length) return;
+  await createClient()
+    .storage.from(bucket)
+    .remove(uploaded.map((u) => u.path))
+    .catch(() => null);
+}

@@ -96,13 +96,22 @@ export function SearchProvider({
  * other step are never shown, and while a newer query is still loading the
  * previous ones stay visible but are marked stale so Enter can't pick them.
  */
-function useRemoteSearch(kind: Step, query: string, locale: Locale) {
+function useRemoteSearch(
+  kind: Step,
+  query: string,
+  locale: Locale,
+  onResults: (kind: Step, query: string, items: SearchOption[]) => void,
+) {
   const [state, setState] = useState<{
     kind: Step;
     query: string;
     items: SearchOption[];
   } | null>(null);
   const supabase = useMemo(() => createClient(), []);
+  const onResultsRef = useRef(onResults);
+  useEffect(() => {
+    onResultsRef.current = onResults;
+  });
 
   useEffect(() => {
     const q = query.trim();
@@ -115,29 +124,25 @@ function useRemoteSearch(kind: Step, query: string, locale: Locale) {
           q,
           max_results: 8,
         });
-        if (!cancelled)
-          setState({
-            kind,
-            query: q,
-            items: (data ?? []).map((s) => ({
-              slug: s[`slug_${key}`],
-              name: s[`name_${key}`],
-            })),
-          });
+        if (cancelled) return;
+        const items = (data ?? []).map((s) => ({
+          slug: s[`slug_${key}`],
+          name: s[`name_${key}`],
+        }));
+        setState({ kind, query: q, items });
+        onResultsRef.current(kind, q, items);
       } else {
         const { data } = await supabase.rpc("search_cities", {
           q,
           max_results: 8,
         });
-        if (!cancelled)
-          setState({
-            kind,
-            query: q,
-            items: (data ?? []).map((c) => ({
-              slug: c.slug,
-              name: c[`name_${key}`],
-            })),
-          });
+        if (cancelled) return;
+        const items = (data ?? []).map((c) => ({
+          slug: c.slug,
+          name: c[`name_${key}`],
+        }));
+        setState({ kind, query: q, items });
+        onResultsRef.current(kind, q, items);
       }
     }, 150);
     return () => {
@@ -171,7 +176,21 @@ function SearchFlow({
   const [service, setService] = useState<SearchOption | null>(initialService);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const { results, fresh } = useRemoteSearch(step, query, locale);
+  // Enter pressed while the results for this query were still loading:
+  // pick the first one when they arrive.
+  const pendingEnter = useRef<string | null>(null);
+  const { results, fresh } = useRemoteSearch(
+    step,
+    query,
+    locale,
+    (kind, q, items) => {
+      if (pendingEnter.current !== `${kind}:${q}`) return;
+      pendingEnter.current = null;
+      if (!items[0]) return;
+      if (kind === "service") pickService(items[0]);
+      else pickCity(items[0]);
+    },
+  );
 
   const remembered = useMemo(
     () => (step === "city" ? readRememberedCity() : null),
@@ -245,7 +264,10 @@ function SearchFlow({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && fresh && options[0]) pick(options[0]);
+              if (e.key !== "Enter") return;
+              if (fresh) {
+                if (options[0]) pick(options[0]);
+              } else pendingEnter.current = `${step}:${query.trim()}`;
             }}
             placeholder={
               step === "service"

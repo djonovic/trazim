@@ -36,7 +36,7 @@ import { Stars } from "@/components/business/review-list";
 import { MessengerField } from "@/components/panel/messenger-field";
 import { messengerFromStored } from "@/lib/business-input";
 import { useRouter } from "@/i18n/navigation";
-import { uploadPhotos } from "@/lib/upload-photos";
+import { discardUploads, uploadPhotos } from "@/lib/upload-photos";
 import { cn } from "@/lib/utils";
 
 type Tab =
@@ -961,6 +961,7 @@ function PhotosTab({ business }: { business: EditorBusiness }) {
             const res = uploaded.length
               ? await addPhotos(business.id, uploaded)
               : { ok: false };
+            if (!res.ok) await discardUploads(uploaded);
             setProgress(null);
             const failed = files.length - uploaded.length;
             setError(

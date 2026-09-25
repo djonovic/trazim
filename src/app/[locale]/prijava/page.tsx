@@ -7,6 +7,7 @@ import { SetAlternates } from "@/components/layout/alternates";
 import type { Locale } from "@/i18n/routing";
 import { safeNext } from "@/lib/auth/redirect";
 import { getUser } from "@/lib/auth/session";
+import { translatePath } from "@/lib/i18n-path";
 import { localePaths } from "@/lib/seo/metadata";
 
 export async function generateMetadata({
@@ -42,10 +43,14 @@ export default async function LoginPage({
   return (
     <main className="mx-auto max-w-md space-y-6 px-4 py-12">
       <SetAlternates
-        paths={localePaths({
+        paths={localePaths((target) => ({
           pathname: "/prijava",
-          query: typeof query.next === "string" ? { next: query.next } : {},
-        })}
+          // After switching language, land on the page in the new language.
+          query:
+            typeof query.next === "string"
+              ? { next: translatePath(next, target) ?? next }
+              : {},
+        }))}
       />
       <header className="space-y-2 text-center">
         <h1 className="text-3xl font-extrabold tracking-tight">

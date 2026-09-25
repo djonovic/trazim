@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { uploadPhotos } from "@/lib/upload-photos";
+import { discardUploads, uploadPhotos } from "@/lib/upload-photos";
 import { cn } from "@/lib/utils";
 
 type Draft = { rating: number; body: string; savedAt: number };
@@ -268,6 +268,7 @@ export function ReviewComposer({
           : ({ ok: true } as const);
         const failed = files.length - uploaded.length;
         if (!added.ok) {
+          await discardUploads(uploaded, "review-photos");
           photoError =
             added.error === "photos" ? t("errors.photos") : t("errors.generic");
         } else {

@@ -783,6 +783,24 @@ export type Database = {
         };
         Relationships: [];
       };
+      rate_limits: {
+        Row: {
+          hits: number;
+          key: string;
+          window_start: string;
+        };
+        Insert: {
+          hits?: number;
+          key: string;
+          window_start?: string;
+        };
+        Update: {
+          hits?: number;
+          key?: string;
+          window_start?: string;
+        };
+        Relationships: [];
+      };
       regions: {
         Row: {
           id: number;
@@ -1412,11 +1430,11 @@ export type Database = {
       is_review_author: { Args: { p_review_id: string }; Returns: boolean };
       is_review_visible: { Args: { p_review_id: string }; Returns: boolean };
       owns_business: { Args: { p_business_id: string }; Returns: boolean };
-      refresh_price_stats: { Args: never; Returns: undefined };
       rate_limit_hit: {
         Args: { p_key: string; p_max: number; p_window_seconds: number };
         Returns: boolean;
       };
+      refresh_price_stats: { Args: never; Returns: undefined };
       reveal_business_contact: {
         Args: {
           p_business_id: string;
@@ -1496,15 +1514,6 @@ export type Database = {
           isSetofReturn: true;
         };
       };
-      storage_business_id: { Args: { object_name: string }; Returns: string };
-      track_banner_click: { Args: { p_banner_id: string }; Returns: string };
-      track_business_contact: {
-        Args: {
-          p_business_id: string;
-          p_kind: Database["public"]["Enums"]["contact_kind"];
-        };
-        Returns: undefined;
-      };
       set_business_cover: {
         Args: { p_business_id: string; p_photo_id: string };
         Returns: undefined;
@@ -1523,6 +1532,15 @@ export type Database = {
           p_city_id: number;
           p_city_ids: number[];
           p_services: Json;
+        };
+        Returns: undefined;
+      };
+      storage_business_id: { Args: { object_name: string }; Returns: string };
+      track_banner_click: { Args: { p_banner_id: string }; Returns: string };
+      track_business_contact: {
+        Args: {
+          p_business_id: string;
+          p_kind: Database["public"]["Enums"]["contact_kind"];
         };
         Returns: undefined;
       };

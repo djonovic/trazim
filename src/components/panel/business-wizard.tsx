@@ -17,7 +17,7 @@ import {
   type MessengerValue,
 } from "@/components/panel/messenger-field";
 import { useRouter } from "@/i18n/navigation";
-import { uploadPhotos } from "@/lib/upload-photos";
+import { discardUploads, uploadPhotos } from "@/lib/upload-photos";
 import { cn } from "@/lib/utils";
 
 export type WizardService = {
@@ -227,6 +227,7 @@ function WizardSteps({ services, cities, regions }: WizardProps) {
         const saved = uploaded.length
           ? (await addPhotos(result.id, uploaded)).ok
           : true;
+        if (!saved) await discardUploads(uploaded);
         missingPhotos = saved ? photos.length - uploaded.length : photos.length;
       }
       try {

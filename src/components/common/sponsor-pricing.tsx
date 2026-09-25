@@ -148,12 +148,14 @@ export async function SponsorPricing({ locale }: { locale: Locale }) {
           ))}
         </ul>
         <div className="flex flex-wrap items-center gap-2">
-          {contactLinks(t("contactSubject")).map(({ href, label, icon: Icon }) => (
-            <a key={label} href={href} className={contactButton}>
-              <Icon className="size-4" />
-              {tc(label)}
-            </a>
-          ))}
+          {contactLinks(t("contactSubject")).map(
+            ({ href, label, icon: Icon }) => (
+              <a key={label} href={href} className={contactButton}>
+                <Icon className="size-4" />
+                {tc(label)}
+              </a>
+            ),
+          )}
           <Link
             href="/kako-rangiramo"
             className="px-2 text-sm font-semibold text-primary hover:underline"

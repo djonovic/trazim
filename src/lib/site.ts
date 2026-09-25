@@ -6,8 +6,8 @@ export const SITE = {
   phoneTel: "+38269956675",
   /** Legal entity that operates the site (e.g. the US LLC). */
   company: "Global Bridge MNE LLC" as string | null,
-  companyAddress:
-    "30 N Gould St Ste N, Sheridan, WY 82801, United States" as string | null,
+  companyAddress: "30 N Gould St Ste N, Sheridan, WY 82801, United States" as
+    string | null,
   /** Set to true once a lawyer has reviewed /uslovi, /privatnost, /kolacici. */
   legalReviewed: true,
   /** Official social profiles (Facebook, Instagram, LinkedIn, Wikidata…) for Organization.sameAs. */
