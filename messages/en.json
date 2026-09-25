@@ -320,7 +320,10 @@
     "logout": "Sign out",
     "myAccount": "My account",
     "myBusinesses": "My businesses",
-    "callbackError": "The sign-in link has expired or was already used. Request a new one."
+    "callbackError": "The sign-in link has expired or was already used. Request a new one.",
+    "confirmTitle": "Confirm sign-in",
+    "confirmText": "Click the button to finish signing in. The link lasts 24 hours.",
+    "confirmButton": "Sign in"
   },
   "Account": {
     "title": "My account",

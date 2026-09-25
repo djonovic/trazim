@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { ConfirmLink } from "@/components/auth/confirm-link";
 import { LoginForm } from "@/components/auth/login-form";
 import type { Locale } from "@/i18n/routing";
 import { safeNext } from "@/lib/auth/redirect";
@@ -27,6 +28,9 @@ export default async function LoginPage({
   const next = safeNext(
     typeof query.next === "string" ? query.next : undefined,
   );
+  const tokenHash =
+    typeof query.token_hash === "string" ? query.token_hash : undefined;
+  const otpType = typeof query.type === "string" ? query.type : undefined;
   if (await getUser()) redirect(next);
   const t = await getTranslations({
     locale: locale as Locale,
@@ -36,8 +40,10 @@ export default async function LoginPage({
   return (
     <main className="mx-auto max-w-md space-y-6 px-4 py-12">
       <header className="space-y-2 text-center">
-        <h1 className="text-3xl font-extrabold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground">{t("subtitle")}</p>
+        <h1 className="text-3xl font-extrabold tracking-tight">
+          {tokenHash ? t("confirmTitle") : t("title")}
+        </h1>
+        {!tokenHash && <p className="text-muted-foreground">{t("subtitle")}</p>}
       </header>
       {query.error === "callback" && (
         <p
@@ -48,7 +54,16 @@ export default async function LoginPage({
         </p>
       )}
       <div className="rounded-2xl border bg-white p-6 shadow-sm">
-        <LoginForm next={next} />
+        {tokenHash && otpType ? (
+          <ConfirmLink
+            locale={locale as Locale}
+            tokenHash={tokenHash}
+            type={otpType}
+            next={next}
+          />
+        ) : (
+          <LoginForm next={next} />
+        )}
       </div>
     </main>
   );

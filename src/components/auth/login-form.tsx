@@ -3,7 +3,7 @@
 import { Loader2, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { callbackUrl } from "@/lib/auth/redirect";
+import { callbackUrl, emailConfirmUrl } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/client";
 
 type Provider = "google";
@@ -64,7 +64,13 @@ export function LoginForm({ next }: { next: string }) {
     setError(null);
     const { error } = await createClient().auth.signInWithOtp({
       email: value,
-      options: { emailRedirectTo: callbackUrl(window.location.origin, next) },
+      options: {
+        emailRedirectTo: emailConfirmUrl(
+          window.location.origin,
+          window.location.pathname,
+          next,
+        ),
+      },
     });
     setPending(null);
     if (error) {

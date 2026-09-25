@@ -320,7 +320,10 @@
     "logout": "Odjavi se",
     "myAccount": "Moj nalog",
     "myBusinesses": "Moji biznisi",
-    "callbackError": "Link za prijavu je istekao ili je već iskorišćen. Zatraži novi."
+    "callbackError": "Link za prijavu je istekao ili je već iskorišćen. Zatraži novi.",
+    "confirmTitle": "Potvrdi prijavu",
+    "confirmText": "Klikni dugme da završiš prijavu. Link važi 24 sata.",
+    "confirmButton": "Prijavi se"
   },
   "Account": {
     "title": "Moj nalog",
