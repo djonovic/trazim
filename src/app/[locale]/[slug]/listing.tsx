@@ -114,8 +114,8 @@ export async function listingMetadata(
         ? t("listingRating", { rating: avg.toFixed(1), count: reviews })
         : "",
     }),
-    // Thin-content guard: only index combinations that have real businesses
-    // (for a settlement, businesses that list it themselves).
+    // Thin-content guard: index only when enough businesses are based here
+    // (service-area coverage alone does not count). See getIndexability().
     noindex: !(await getIndexability()).combo(service.id, city),
     // Page 1 has its own image file; later pages reuse it.
     image: page === 1 ? false : `/${locale}/${slug}/opengraph-image`,
@@ -266,8 +266,7 @@ export async function ListingPage({
     : null;
   const { tips, description } = content;
 
-  // Internal links (like Košnica): same service in other towns, similar
-  // services here. Only combinations with businesses (the rest are noindex).
+  // Internal links only to indexable combinations (the rest are noindex).
   const otherCities = cities
     .filter(
       (c) =>

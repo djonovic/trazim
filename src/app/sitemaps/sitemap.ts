@@ -4,9 +4,13 @@ import { hreflang, routing, type Locale } from "@/i18n/routing";
 import { siteUrl } from "@/lib/env";
 import { getAllPriceStats } from "@/lib/queries/prices";
 import { getTaxonomy, serviceSlug, type City } from "@/lib/queries/taxonomy";
+import { getIndexability } from "@/lib/seo/indexable";
 import { SITE } from "@/lib/site";
 import { publicDb, photoUrl } from "@/lib/supabase/public";
 import { fetchAll } from "@/lib/supabase/errors";
+
+/** Bump when indexability rules change so listing lastmod moves forward. */
+export const SITEMAP_REVISION = "2026-11-19T00:00:00.000Z";
 
 // Sitemaps by page type (/sitemaps/sitemap/{id}.xml), listed in /sitemap.xml
 // and robots.txt. Only indexable URLs: the same rules as the pages' noindex
@@ -66,7 +70,7 @@ async function activeBusinesses() {
       publicDb
         .from("businesses")
         .select(
-          "id, slug, moderated_at, updated_at, business_services(service_id), business_cities(city_id), business_photos(storage_path, is_cover, sort_order)",
+          "id, slug, city_id, moderated_at, updated_at, business_services(service_id), business_cities(city_id), business_photos(storage_path, is_cover, sort_order)",
         )
         .eq("status", "active")
         .order("id")
@@ -121,6 +125,7 @@ export default async function sitemap(props: {
     case "cities":
     case "listings": {
       const businesses = await activeBusinesses();
+      const indexable = id === "listings" ? await getIndexability() : null;
       if (id === "services")
         return services.flatMap((service) => {
           const dates = businesses
@@ -155,30 +160,28 @@ export default async function sitemap(props: {
             : [];
         });
 
-      // /{service}-{city}: every combination with at least one business.
-      const byCombo = new Map<string, string[]>();
-      for (const b of businesses)
-        for (const { service_id } of b.business_services)
-          for (const { city_id } of b.business_cities) {
-            const key = `${service_id}:${city_id}`;
-            byCombo.set(key, [...(byCombo.get(key) ?? []), b.updated_at]);
-          }
+      // /{service}-{city}: same rule as getIndexability().combo — at least
+      // MIN_LOCAL_BUSINESSES businesses based in the city, not merely covering it.
       return services.flatMap((service) =>
         cities.flatMap((city) => {
-          const dates = relatedIds(city, cities).flatMap(
-            (cityId) => byCombo.get(`${service.id}:${cityId}`) ?? [],
+          if (!indexable!.combo(service.id, city)) return [];
+          const ids = relatedIds(city, cities);
+          const dates = businesses
+            .filter(
+              (b) =>
+                ids.includes(b.city_id) &&
+                b.business_services.some((s) => s.service_id === service.id),
+            )
+            .map((b) => b.updated_at);
+          return localized(
+            (locale) => ({
+              pathname: "/[slug]",
+              params: {
+                slug: `${serviceSlug(service, locale)}-${city.slug}`,
+              },
+            }),
+            { lastModified: latest([...dates, SITEMAP_REVISION]) },
           );
-          return dates.length
-            ? localized(
-                (locale) => ({
-                  pathname: "/[slug]",
-                  params: {
-                    slug: `${serviceSlug(service, locale)}-${city.slug}`,
-                  },
-                }),
-                { lastModified: latest(dates) },
-              )
-            : [];
         }),
       );
     }
