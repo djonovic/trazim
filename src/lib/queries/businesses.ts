@@ -403,7 +403,9 @@ export const getCoverage = unstable_cache(
       (from, to) =>
         publicDb
           .from("businesses")
-          .select("id, business_services(service_id), business_cities(city_id)")
+          .select(
+            "id, city_id, business_services(service_id), business_cities(city_id)",
+          )
           .eq("status", "active")
           .order("id")
           .range(from, to),
@@ -412,21 +414,25 @@ export const getCoverage = unstable_cache(
 
     const perService: Record<number, number> = {};
     const perServiceCity: Record<string, number> = {};
+    // Home city only (businesses.city_id), not the wider service area.
+    const perServiceBaseCity: Record<string, number> = {};
     const perCity: Record<number, number> = {};
     for (const b of data) {
       const cities = new Set(b.business_cities.map((c) => c.city_id));
       for (const c of cities) perCity[c] = (perCity[c] ?? 0) + 1;
       for (const { service_id } of b.business_services) {
         perService[service_id] = (perService[service_id] ?? 0) + 1;
+        const baseKey = `${service_id}:${b.city_id}`;
+        perServiceBaseCity[baseKey] = (perServiceBaseCity[baseKey] ?? 0) + 1;
         for (const c of cities) {
           const key = `${service_id}:${c}`;
           perServiceCity[key] = (perServiceCity[key] ?? 0) + 1;
         }
       }
     }
-    return { perService, perServiceCity, perCity };
+    return { perService, perServiceCity, perServiceBaseCity, perCity };
   },
-  ["coverage-v1"],
+  ["coverage-v2"],
   { tags: ["businesses"], revalidate: HOUR },
 );
 
